@@ -22,7 +22,7 @@
 import DefaultDropdown from '@/components/DefaultDropdown.vue';
 import DefaultOption from '@/components/DefaultOption.vue';
 
-import type { Chord } from '..';
+import type { Chord } from '../types';
 import { ref } from 'vue';
 import { useChords } from './Chords';
 

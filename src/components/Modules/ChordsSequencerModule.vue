@@ -38,7 +38,7 @@
 <script setup lang="ts">
 import BlockContainer from '@/components/BlockContainer.vue';
 import ChordBeat from './ChordSequencerModule/ChordBeat.vue';
-import type { Chord } from './index.d';
+import type { Chord } from './types';
 import { ref, watch } from 'vue';
 import DefaultButton from '@/components/DefaultButton.vue';
 import TextInput from '@/components/TextInput.vue';

@@ -1,6 +1,10 @@
-# music-tool
+# Music Multitool
 
-This template should help get you started developing with Vue 3 in Vite.
+A web-based music production tool featuring:
+- Multiple loopers for layered recording
+- Built-in metronome for precise timing
+- Chord sequencer for harmonic progression
+- Piano/synth module for melody and composition
 
 ## Recommended IDE Setup
 
@@ -37,3 +41,5 @@ npm run build
 ```sh
 npm run lint
 ```
+
+

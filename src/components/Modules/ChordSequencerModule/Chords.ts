@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { Chord } from "..";
+import type { Chord } from "../types";
 import { useKeys } from "../PianoModule/useKeys";
 
 export const useChords = () => {

@@ -56,7 +56,7 @@
     import TriangleWaveIcon from "@/components/Icons/TriangleWaveIcon.vue";
     import SawtoothWaveIcon from "@/components/Icons/SawtoothWaveIcon.vue";
     import HorizontalList from "@/components/HorizontalList.vue";
-    import { type PianoToneKeyData } from "./index";
+    import type { PianoToneKeyData } from "./types";
     import { useSynthLogic } from "./PianoModule/useSynthLogic";
 
     const { keys, playKey, stopKey, oscillatorType, activeKeyTones} = useSynthLogic();

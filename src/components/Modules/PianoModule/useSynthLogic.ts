@@ -1,6 +1,6 @@
 import { reactive, ref, watch } from "vue";
 import { useOscilator } from "./useOscilator";
-import type { PianoToneKeyData, ToneKeyData } from "..";
+import type { PianoToneKeyData, ToneKeyData } from "../types";
 import { generateOctave } from "./useKeys";
 
 export const useSynthLogic = () => {

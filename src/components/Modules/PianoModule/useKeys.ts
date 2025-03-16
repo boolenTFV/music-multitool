@@ -1,5 +1,5 @@
 import { ref } from "vue";
-import type { ToneKeyData } from "..";
+import type { ToneKeyData } from "../types";
 
 export const useKeys = () => {
     const keys = ref<ToneKeyData[]>(generateKeys());
@@ -15,7 +15,7 @@ export function generateOctave(octave: number): ToneKeyData[] {
         const frequency = computeFrequency(octave, i);
         keys.push({key: keyNames[i], octave, frequency});
     }
-    return keys as PianoToneKeyData[];
+    return keys as ToneKeyData[];
 }
 
 function computeFrequency(octave: number, index: number) {
