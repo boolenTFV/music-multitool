@@ -1,0 +1,34 @@
+* {
+    --primary-color: rgb(45, 45, 65);
+    --primary-dark-color: rgb(25, 25, 35);
+    --block-color: rgba(55, 55, 75, 0.4);
+    --primary-font-color: rgba(220, 220, 240, 0.95);
+    --background-color: rgb(35, 35, 55);
+    --background-gradient: linear-gradient(rgb(15, 15, 25), var(--background-color));
+    --font-color: rgba(200, 200, 220, 0.85);
+    --input-background-color: rgb(35, 35, 45);
+    --accent-color: rgb(100, 100, 255);
+    --hover-color: rgba(120, 120, 255, 0.2);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-border-color: rgba(255, 255, 255, 0.15);
+    --input-focus-border-color: var(--accent-color);
+    --input-placeholder-color: rgba(200, 200, 220, 0.5);
+    --input-disabled-color: rgba(200, 200, 220, 0.3);
+    --input-error-color: rgb(255, 100, 100);
+    --input-success-color: rgb(100, 255, 100);
+    --input-background-color: rgb(30, 30, 40);
+    --input-background-color-hover: rgb(40, 40, 50);
+    --input-background-color-focus: rgb(35, 35, 45);
+    --input-background-color-disabled: rgb(25, 25, 35);
+    --button-primary-bg: var(--accent-color);
+    --button-primary-hover: rgb(120, 120, 255);
+    --button-primary-active: rgb(80, 80, 255);
+    --button-secondary-bg: var(--primary-color);
+    --button-secondary-hover: rgb(55, 55, 75);
+    --button-secondary-active: rgb(35, 35, 55);
+    --button-disabled-bg: rgb(45, 45, 45);
+    --button-disabled-color: rgba(200, 200, 220, 0.3);
+    --button-text-color: white;
+    --button-border-radius: 4px;
+    --dropdown-background-color: rgb(35, 35, 55, 0.95);
+}
