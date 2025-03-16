@@ -7,7 +7,7 @@
         <ChordsSequencerModule v-if="isChordSequencer" :class="$style.chordsSequencer"/>
         <PianoModule v-if="isPiano" :class="$style.piano"/>
       </div>
-      <HorizontalList>
+      <HorizontalList :class="$style.controls">
           <DefaultButton @click="loppersCount++" :disabled="loppersCount >= 8" square>+</DefaultButton>
           <DefaultButton @click="loppersCount--" :disabled="loppersCount <= 1" square>-</DefaultButton>
           <DefaultButton @click="playAll" square><PlayIcon :size="24"/></DefaultButton>
@@ -63,7 +63,7 @@ function clearAll() {
 }
 </script>
 
-<style module>
+<style lang="scss" module>
 .container {
   display: grid;
   width: 100%;
@@ -85,5 +85,21 @@ function clearAll() {
   grid-column: span 6;
   grid-row: span 1;
   z-index: 2;
+}
+@media screen and (max-width: 800px) {
+  .container {
+    grid-template-columns: 1fr 1fr;
+  }
+  .piano {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+  .chordsSequencer {
+    grid-column: span 2;
+    grid-row: span 2;
+  }
+}
+.controls {
+  flex-wrap: wrap;
 }
 </style>

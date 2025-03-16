@@ -153,6 +153,7 @@ const stop = () => {
     display: flex;
     gap: 16px;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .label {
