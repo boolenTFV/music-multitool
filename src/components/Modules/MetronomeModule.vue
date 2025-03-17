@@ -56,6 +56,7 @@ const state = ref<"created" | "started" | "stoped">("created");
 
 watch(tempoo, () => {
     if(state.value === "started") {
+        stop()
         start()
     }
 })
@@ -75,7 +76,7 @@ function start() {
     }
     state.value = "started";
     const intervalTime = minute / tempoo.value;
-
+    bip()
     interval = setInterval(bip, intervalTime);
 }
 async function bip() {
