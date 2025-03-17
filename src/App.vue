@@ -2,26 +2,24 @@
   <DefaultLayout>
     <VerticalList align="start">
       <div :class="$style.container">
-        <MetronomeModule v-if="isMetronome" :class="$style.metronome" />
-        <LooperModule v-for="i in loppersCount" :key="i" :class="$style.looper"/>
-        <ChordsSequencerModule v-if="isChordSequencer" :class="$style.chordsSequencer"/>
-        <PianoModule v-if="isPiano" :class="$style.piano"/>
+        <MetronomeModule v-if="isMetronomeVisible" :class="$style.metronome" />
+        <LooperModule v-if="isLooperVisible" :class="$style.looper"/>
+        <ChordsSequencerModule v-if="isChordSequencerVisible" :class="$style.chordsSequencer"/>
+        <PianoModule v-if="isPianoVisible" :class="$style.piano"/>
       </div>
       <HorizontalList :class="$style.controls">
-          <DefaultButton @click="loppersCount++" :disabled="loppersCount >= 8" square>+</DefaultButton>
-          <DefaultButton @click="loppersCount--" :disabled="loppersCount <= 1" square>-</DefaultButton>
-          <DefaultButton @click="playAll" square><PlayIcon :size="24"/></DefaultButton>
-          <DefaultButton @click="stopAll" square><StopIcon /></DefaultButton>
-          <DefaultButton @click="clearAll" square><ClearIcon /></DefaultButton>
-          <DefaultButton @click="isMetronome = !isMetronome" :type="isMetronome ? 'primary' : 'secondary'">
+          <DefaultButton @click="isMetronomeVisible = !isMetronomeVisible" :type="isMetronomeVisible ? 'primary' : 'secondary'">
             <MetronomeIcon />
             Metronome
           </DefaultButton>
-          <DefaultButton @click="isChordSequencer = !isChordSequencer" :type="isChordSequencer ? 'primary' : 'secondary'">
+          <DefaultButton :type="isLooperVisible ? 'primary' : 'secondary'" @click="isLooperVisible = !isLooperVisible">
+            <LooperIcon /> Looper
+          </DefaultButton>
+          <DefaultButton @click="isChordSequencerVisible = !isChordSequencerVisible" :type="isChordSequencerVisible ? 'primary' : 'secondary'">
             <ChordSequencerIcon />
             Chord Sequence
           </DefaultButton>
-          <DefaultButton :type="isPiano ? 'primary' : 'secondary'" @click="isPiano = !isPiano">
+          <DefaultButton :type="isPianoVisible ? 'primary' : 'secondary'" @click="isPianoVisible = !isPianoVisible">
             <PianoIcon /> Synth
           </DefaultButton>
       </HorizontalList>
@@ -37,30 +35,17 @@ import PianoModule from './components/Modules/PianoModule.vue';
 import ChordsSequencerModule from './components/Modules/ChordsSequencerModule.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import VerticalList from '@/components/VerticalList.vue';
-import { CLEAR_EVENT, looperEventTarget, PLAY_EVENT, STOP_EVENT } from '@/eventTargets/looperEventTarget';
 import { ref } from 'vue';
 import DefaultButton from './components/DefaultButton.vue';
-import PlayIcon from './components/Icons/PlayIcon.vue';
-import StopIcon from './components/Icons/StopIcon.vue';
-import ClearIcon from './components/Icons/ClearIcon.vue';
 import PianoIcon from './components/Icons/PianoIcon.vue';
 import ChordSequencerIcon from './components/Icons/ChordSequencerIcon.vue';
 import MetronomeIcon from './components/Icons/MetronomeIcon.vue';
-const isMetronome = ref(true);
-const loppersCount = ref(8);
-const isPiano = ref(false);
-const isChordSequencer = ref(false);
+import LooperIcon from './components/Icons/LooperIcon.vue';
 
-
-function playAll() {
-  looperEventTarget.dispatchEvent(new Event(PLAY_EVENT))
-}
-function stopAll() {
-  looperEventTarget.dispatchEvent(new Event(STOP_EVENT))
-}
-function clearAll() {
-  looperEventTarget.dispatchEvent(new Event(CLEAR_EVENT))
-}
+const isMetronomeVisible = ref(true);
+const isLooperVisible = ref(true);
+const isPianoVisible = ref(false);
+const isChordSequencerVisible = ref(false);
 </script>
 
 <style lang="scss" module>
@@ -72,6 +57,10 @@ function clearAll() {
   grid-auto-rows: minmax(200px, auto);
   position: relative;
   z-index: 2;
+}
+.looper {
+  grid-column: span 4;
+  grid-row: span 2;
 }
 .metronome {
   grid-column: span 2;
@@ -97,6 +86,10 @@ function clearAll() {
   .chordsSequencer {
     grid-column: span 2;
     grid-row: span 2;
+  }
+  .looper {
+    grid-column: span 2;
+    grid-row: span 1;
   }
 }
 .controls {

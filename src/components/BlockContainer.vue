@@ -1,7 +1,9 @@
 <template>
     <div :class="$style.container">
         <h3 :class="$style.heading"><slot name="heading" /></h3>
-        <slot />
+        <div :class="$style.content">
+            <slot />
+        </div>
     </div>
 </template>
 <style lang="scss" module>
@@ -14,5 +16,8 @@
     background-color: var(--block-color);
     backdrop-filter: blur(10px);
 
+}
+.content {
+    height: calc(100% - 32px);
 }
 </style>

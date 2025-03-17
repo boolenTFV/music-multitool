@@ -1,5 +1,5 @@
     <template>
-        <BlockContainer>
+        <BlockContainer :class="$style.block_container">
             <template #heading>Keyboard</template>
             <div :class="$style.container">
                 <div :class="$style.tool_panel">
@@ -99,11 +99,14 @@
     });
     </script>
     <style module>
+    .block_container {
+        user-select: none;
+    }
     .container {
         display: flex;
         flex-direction: column;
         justify-content: stretch;
-        height: calc(100% - 60px);
+        height: 100%;
     }
     .piano {
         user-select: none;

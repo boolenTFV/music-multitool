@@ -1,7 +1,7 @@
 <template>
     <BlockContainer>
         <template #heading>Metronome</template>
-        <VerticalList>
+        <VerticalList :class="$style.container" justify="space-between">
             <label for="">
                 Tempo
                 <RangeInput v-model="tempoo" :min="30" :max="250"/>
@@ -106,6 +106,9 @@ function stop() {
 </script>
 
 <style lang="scss" module>
+.container {
+    height: 100%;
+}
 .tackts {
     display: flex;
     align-items: center;

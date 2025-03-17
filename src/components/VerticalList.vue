@@ -9,7 +9,7 @@ const style = useCssModule()
 const props = withDefaults(defineProps<{
     gap?: string,
     align?: 'start' | 'center' | 'end',
-    justify?: 'start' | 'center' | 'end' | 'stretch'
+    justify?: 'start' | 'center' | 'end' | 'stretch' | 'space-between'
 }>(), {
     gap: "8px"
 })
@@ -42,5 +42,8 @@ const alignClass = computed(() => props.align ? style[`align_${props.align}`] : 
 }
 .justify_stretch {
     justify-content: stretch;
+}
+.justify_space-between {
+    justify-content: space-between;
 }
 </style>
