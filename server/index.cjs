@@ -10,7 +10,7 @@ const options = {
 
 https.createServer(options, (req, res) => {
     console.log("Server is running on port 3000");
-    return (req, res) => {
+    return () => {
         console.log("Request received");
         return handler(req, res, {
             public: 'dist'
