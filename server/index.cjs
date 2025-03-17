@@ -9,7 +9,11 @@ const options = {
 };
 
 https.createServer(options, (req, res) => {
-    return handler(req, res, {
-        public: 'dist'
-    });
-}).listen(443);
+    console.log("Server is running on port 3000");
+    return (req, res) => {
+        console.log("Request received");
+        return handler(req, res, {
+            public: 'dist'
+        })
+    };
+}).listen(3000);

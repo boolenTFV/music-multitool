@@ -17,6 +17,7 @@ coverage
 /cypress/videos/
 /cypress/screenshots/
 /server/cert/
+/cert/
 
 # Editor directories and files
 .vscode/*
