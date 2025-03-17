@@ -26,6 +26,8 @@
                             @mouseup="stopKey(data)"
                             @mouseleave="(event) => mouseLeave(event, data)"
                             @mouseenter="(event) => mouseEnter(event, data)"
+                            @touchstart="playKey(data)"
+                            @touchend="stopKey(data)"
                             :class="[$style.pianoKey, $style.whiteKey]"
                             :key="`${data.key}${data.octave}`"
                             :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
@@ -34,6 +36,8 @@
                             v-if="data.type === 'black'"
                             @mousedown="playKey(data)"
                             @mouseup="stopKey(data)"
+                            @touchstart="playKey(data)"
+                            @touchend="stopKey(data)"
                             @mouseleave="(event) => mouseLeave(event, data)"
                             @mouseenter="(event) => mouseEnter(event, data)"
                             :class="[$style.pianoKey, $style.blackKey]"
@@ -102,6 +106,7 @@
         height: calc(100% - 60px);
     }
     .piano {
+        user-select: none;
         display: flex;
         flex: 1;
         position: relative;

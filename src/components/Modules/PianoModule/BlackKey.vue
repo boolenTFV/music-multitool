@@ -10,6 +10,7 @@ defineProps<{
 
 <style lang="scss" module>
 .blackKey {
+    user-select: none;
     width: 30px;
     height: 150px;
     background-color: black;

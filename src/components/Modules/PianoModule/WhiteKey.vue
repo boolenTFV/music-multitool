@@ -9,6 +9,7 @@ defineProps<{
 </script>
 <style lang="scss" module>
 .whiteKey {
+    user-select: none;
     width: 50px;
     background-color: white;
     border: none;
