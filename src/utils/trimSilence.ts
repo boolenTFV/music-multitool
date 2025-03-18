@@ -1,7 +1,7 @@
 /**
  * Trims silence from the beginning and end of an AudioBuffer.
  */
-export function trimSilence(audioBuffer: AudioBuffer, silenceThreshold = 0.01) {
+export function trimSilence(audioBuffer: AudioBuffer, silenceThreshold = 0.02) {
     const samples = audioBuffer.getChannelData(0); // Get the first channel (mono)
     const sampleRate = audioBuffer.sampleRate;
   
