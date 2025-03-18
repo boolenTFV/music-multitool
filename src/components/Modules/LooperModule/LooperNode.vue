@@ -18,6 +18,9 @@
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
+            <DefaultButton :disabled="state !== 'default' || !isRecorded" @click="handleTrimSilence">
+                Trim Silence
+            </DefaultButton>
         </VerticalList>
     </div>
 </template>
@@ -32,14 +35,17 @@ import ClearIcon from '@/components/Icons/ClearIcon.vue';
 import StopIcon from '@/components/Icons/StopIcon.vue';
 import RecordIcon from '@/components/Icons/RecordIcon.vue';
 import HorizontalList from '@/components/HorizontalList.vue';
+import { trimSilence } from '@/utils/trimSilence';
 
 const isNotSupporeted = ref(false)
 const mediaRecorder = ref<MediaRecorder>()
-const audioChunks = ref<BlobPart[]>([])
+let audioChunks: BlobPart[] = [];
 const state = ref<"record" | "play" | "default">("default")
 const audioContext = useAudioContext();
 const source = ref<AudioBufferSourceNode>();
-const isRecorded = computed(() => audioChunks.value.length > 0)
+const audioBuffer = ref<AudioBuffer>();
+const isRecorded = computed(() => audioBuffer.value);
+
 onMounted(async () => {
     if (!navigator.mediaDevices){
         isNotSupporeted.value = true;
@@ -49,10 +55,22 @@ onMounted(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({audio: true}); 
     mediaRecorder.value = new MediaRecorder(stream);  
     mediaRecorder.value.ondataavailable = (ev: BlobEvent) => {
-        audioChunks.value.push(ev.data)
+        audioChunks.push(ev.data)
     };
+    mediaRecorder.value.onstop = async () => {
+        const superBlob = new Blob(audioChunks);
+        const arrayBuffer = await superBlob.arrayBuffer();
+        audioContext.value.decodeAudioData(arrayBuffer, (audioBufferInner: AudioBuffer) => {
+            audioBuffer.value = audioBufferInner;
+        });
+    }
 })
+const handleTrimSilence = async () => {
+    if(!audioBuffer.value) return;
+    const trimmedBuffer = trimSilence(audioBuffer.value);
+    audioBuffer.value = trimmedBuffer;
 
+}
 function record() {
     if(!mediaRecorder.value) return
     clearRecord()
@@ -60,7 +78,7 @@ function record() {
     state.value = "record"
 }
 
-function stopRecord() {
+async function stopRecord() {
     if(!mediaRecorder.value) return
     mediaRecorder.value.stop()
     state.value = "default";
@@ -68,7 +86,8 @@ function stopRecord() {
 
 function clearRecord() {
     if(!mediaRecorder.value) return
-    audioChunks.value = []
+    audioChunks = []
+    audioBuffer.value = undefined
 }
 
 
@@ -87,18 +106,14 @@ function stop() {
 
 async function play() {
     source.value = audioContext.value.createBufferSource();
-    const superBlob = new Blob(audioChunks.value);
-    const arrayBuffer = await superBlob.arrayBuffer();
-    audioContext.value.decodeAudioData(arrayBuffer, (audioBuffer: AudioBuffer) => {
-        if(!source.value) return;
-        source.value.buffer = audioBuffer;
-        source.value.connect(audioContext.value.destination);
-        source.value.start()
-        source.value.addEventListener("ended", () => {
-            if(state.value !== "play") return;
-            play();
-        })
-    });
+    if(!audioBuffer.value) return;
+    source.value.buffer = audioBuffer.value;
+    source.value.connect(audioContext.value.destination);
+    source.value.start()
+    source.value.addEventListener("ended", () => {
+        if(state.value !== "play") return;
+        play();
+    })
     state.value = "play";
 }
 looperEventTarget.addEventListener(STOP_EVENT, stop);
