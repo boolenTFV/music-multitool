@@ -1,12 +1,29 @@
 <template>
     <footer :class="$style.footer">
         <div :class="$style.content">
-            <p :class="$style.description">
-                A web-based music creation tool featuring a virtual keyboard, rhythm tools, and recording capabilities.
-            </p>
+            <div>
+                <h4 :class="$style.title">Music Multitool</h4>
+                <p :class="$style.description">
+                    
+                    🎶 A web-based music sandbox for creators, musicians, and enthusiasts.
+                </p>
+            </div>
+            <div>
+                <h4 :class="$style.title">Community</h4>
+                <p :class="$style.description">
+                    🔗 Join our community on Telegram:
+                    <DefaultLink to="https://t.me/music_multitool_web" target="_blank">Telegram Channel</DefaultLink>
+                </p>
+            </div>
+
         </div>
     </footer>
 </template>
+
+<script setup lang="ts">
+import DefaultLink from './DefaultLink.vue';
+
+</script>
 
 <style lang="scss" module>
 .footer {
@@ -15,14 +32,16 @@
     background: var(--primary-dark-color);
     margin-top: auto;
 }
-
+.title {
+    margin-top: 0;
+    margin-bottom: 12px;
+}
 .content {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 24px;
+    gap: 48px;
     flex-wrap: wrap;
 }
 
@@ -40,25 +59,5 @@
     gap: 12px;
     color: var(--font-color);
     font-size: 14px;
-}
-
-.link {
-    color: var(--accent-color);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    padding: 6px 12px;
-    border-radius: var(--button-border-radius);
-    background: var(--button-primary-bg);
-    color: var(--button-text-color);
-
-    &:hover {
-        background: var(--button-primary-hover);
-        transform: translateY(-1px);
-    }
-
-    &:active {
-        background: var(--button-primary-active);
-        transform: translateY(0);
-    }
 }
 </style> 

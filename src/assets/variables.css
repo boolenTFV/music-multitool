@@ -31,4 +31,7 @@
     --button-text-color: white;
     --button-border-radius: 4px;
     --dropdown-background-color: rgb(35, 35, 55, 0.95);
+    --link-color: var(--accent-color);
+    --link-hover-color: rgb(120, 120, 255);
+    --link-active-color: rgb(80, 80, 255);
 }
