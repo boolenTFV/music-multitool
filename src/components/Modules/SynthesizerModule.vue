@@ -281,6 +281,7 @@
     .range_label {
         display: flex;
         align-items: center;
+        color: var(--primary-dark-color);
         gap: 10px;
         span {
             min-width: 70px;
