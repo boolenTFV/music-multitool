@@ -16,19 +16,24 @@ export const useOscilator = () => {
         gain.gain.value = 0;
     }
 
-    const playNote = (data: ToneKeyData) => {
+    const playNote = (data: ToneKeyData, attackTimeMs: number = 0.2) => {
+        const attackTime = attackTimeMs / 1000;
         if(busy.value) return;
+        busy.value = true;
         if(!isOn.value) {
             isOn.value = true;
             initOscillator();
         }
         oscillator.frequency.value = data.frequency;
-        gain.gain.setTargetAtTime(maxVolume.value, audioContext.value.currentTime + 0.01, 0.005);
-        busy.value = true;
+        gain.gain.cancelScheduledValues(audioContext.value.currentTime);
+        gain.gain.setTargetAtTime(maxVolume.value, audioContext.value.currentTime + attackTime, attackTime / 2);
     }
-    const stopNote = () => {
+
+    const stopNote = (releaseTimeMs: number = 0.5) => {
+        const releaseTime = releaseTimeMs / 1000;
         busy.value = false;
-        gain.gain.setTargetAtTime(0, audioContext.value.currentTime + 0.01, 0.005);
+        gain.gain.cancelScheduledValues(audioContext.value.currentTime);
+        gain.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTime, releaseTime / 2);
     }
 
     return {

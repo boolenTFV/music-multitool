@@ -1,10 +1,10 @@
 <template>
     <div :class="$style.container">
-        <div :class="$style.input">
+        <div v-if="!compact" :class="$style.input" >
             <TextInput type="number" :min="min" :max="max" v-model="value"/>
         </div>
-        <input :class="$style.range" type="range" v-model="value" :min="min" :max="max">
-        <div :class="$style.minmax">
+        <input :class="$style.range" type="range" v-model="value" :min="min" :max="max" :step="step">
+        <div v-if="!compact" :class="$style.minmax">
             <span>{{ min }}</span><span>{{max}}</span>
         </div>
 
@@ -18,9 +18,13 @@ import useDelayedWatch from '@/composables/useDelayedWatch';
 const props = withDefaults(defineProps<{
     min?: number;
     max?: number;
+    step?: number;
+    compact?: boolean;
 }>(), {
     min: 0,
-    max: 100
+    max: 100,
+    step: 1,
+    compact: false
 })
 const value = defineModel();
 
