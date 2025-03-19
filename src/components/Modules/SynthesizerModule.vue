@@ -4,17 +4,70 @@
             <div :class="$style.container">
                 <div :class="$style.tool_panel">
                     <div :class="$style.button_container">    
-                        <DefaultButton title="Sine" :type="oscillatorType === 'sine' ? 'primary' : 'secondary'" square @click="oscillatorType = 'sine'">
-                            <SineWaveIcon></SineWaveIcon>
+                        <DefaultButton
+                            title="Sine"
+                            :type="oscillatorType === 'sine' ? 'primary' : 'secondary'"
+                            square
+                            @click="oscillatorType = 'sine'"
+                            :disabled="type === 'sampler'"
+                        >
+                            <SineWaveIcon />
                         </DefaultButton>
-                        <DefaultButton title="Square" :type="oscillatorType === 'square' ? 'primary' : 'secondary'" square @click="oscillatorType = 'square'">
-                            <SquareWaveIcon></SquareWaveIcon>
+                        <DefaultButton
+                            title="Square"
+                            :type="oscillatorType === 'square' ? 'primary' : 'secondary'"
+                            square
+                            @click="oscillatorType = 'square'"
+                            :disabled="type === 'sampler'"
+                        >
+                            <SquareWaveIcon />
                         </DefaultButton>
-                        <DefaultButton title="Triangle" :type="oscillatorType === 'triangle' ? 'primary' : 'secondary'" square @click="oscillatorType = 'triangle'">
-                            <TriangleWaveIcon></TriangleWaveIcon>
+                        <DefaultButton
+                            title="Triangle"
+                            :type="oscillatorType === 'triangle' ? 'primary' : 'secondary'"
+                            square
+                            @click="oscillatorType = 'triangle'"
+                            :disabled="type === 'sampler'"
+                        >
+                            <TriangleWaveIcon />
                         </DefaultButton>
-                        <DefaultButton title="Sawtooth" :type="oscillatorType === 'sawtooth' ? 'primary' : 'secondary'" square @click="oscillatorType = 'sawtooth'">
-                            <SawtoothWaveIcon></SawtoothWaveIcon>
+                        <DefaultButton
+                            title="Sawtooth"
+                            :type="oscillatorType === 'sawtooth' ? 'primary' : 'secondary'"
+                            square
+                            @click="oscillatorType = 'sawtooth'"
+                            :disabled="type === 'sampler'"
+                        >
+                            <SawtoothWaveIcon />
+                        </DefaultButton>
+                        <DefaultButton
+                            title="Record" @click="recordSample"
+                            v-if="!isRecordedSampler && stateSampler !== 'record'"
+                            square
+                        >
+                            <RecordIcon :size="24"/>
+                        </DefaultButton>
+                        <DefaultButton
+                            title="Stop"
+                            @click="stopRecordSample"
+                            v-if="stateSampler == 'record'"
+                            square
+                        >
+                            <StopIcon :size="24"/>
+                        </DefaultButton>
+                        <DefaultButton
+                            title="Clear"
+                            @click="clearRecordSample"
+                            v-if="isRecordedSampler"
+                            square
+                        >
+                            <ClearIcon :size="24"/>
+                        </DefaultButton>
+                        <DefaultButton
+                            @click="trimSilenceHandler"
+                            v-if="stateSampler !== 'record' && isRecordedSampler"
+                        >
+                            Trim silence
                         </DefaultButton>
                     </div>
                     <div :class="$style.range_container">
@@ -39,22 +92,22 @@
                 <template v-for="(data, index) in keys" :key="index">
                     <WhiteKey
                         v-if="data.type === 'white'"
-                        @mousedown="playKey(data)"
-                        @mouseup="stopKey(data)"
+                        @mousedown="play(data)"
+                        @mouseup="stop(data)"
                         @mouseleave="(event) => mouseLeave(event, data)"
                         @mouseenter="(event) => mouseEnter(event, data)"
-                        @touchstart="playKey(data)"
-                        @touchend="stopKey(data)"
+                        @touchstart="play(data)"
+                        @touchend="stop(data)"
                         :class="[$style.pianoKey, $style.whiteKey]"
                         :key="`${data.key}${data.octave}`"
                         :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
                     />
                     <BlackKey
                         v-if="data.type === 'black'"
-                        @mousedown="playKey(data)"
-                        @mouseup="stopKey(data)"
-                        @touchstart="playKey(data)"
-                        @touchend="stopKey(data)"
+                        @mousedown="play(data)"
+                        @mouseup="stop(data)"
+                        @touchstart="play(data)"
+                        @touchend="stop(data)"
                         @mouseleave="(event) => mouseLeave(event, data)"
                         @mouseenter="(event) => mouseEnter(event, data)"
                         :class="[$style.pianoKey, $style.blackKey]"
@@ -67,7 +120,7 @@
         </BlockContainer>
     </template>
     <script lang="ts" setup>
-    import { onUnmounted, ref } from "vue";
+    import { onUnmounted, ref, watch } from "vue";
     import BlockContainer from "@/components/BlockContainer.vue";
     import WhiteKey from "@/components/Modules/PianoModule/WhiteKey.vue";
     import BlackKey from "@/components/Modules/PianoModule/BlackKey.vue";
@@ -76,24 +129,45 @@
     import SquareWaveIcon from "@/components/Icons/SquareWaveIcon.vue";
     import TriangleWaveIcon from "@/components/Icons/TriangleWaveIcon.vue";
     import SawtoothWaveIcon from "@/components/Icons/SawtoothWaveIcon.vue";
+    import StopIcon from "@/components/Icons/StopIcon.vue";
+    import ClearIcon from "@/components/Icons/ClearIcon.vue";
+    import RecordIcon from "@/components/Icons/RecordIcon.vue";
     import RangeInput from "@/components/RangeInput.vue";
     import { useSynthLogic } from "./PianoModule/useSynthLogic";
-import type { PianoToneKeyData } from "./types";
+    import { useSampler } from "./PianoModule/useSampler";
+    import type { PianoToneKeyData } from "./types";
+    import { trimSilence } from "@/utils/trimSilence";
 
+    const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
     const releaseTime = ref(200);
 
-    const { keys, playKey, stopKey, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
+    const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
+    const { play: playSampler, stop: stopSampler, record: recordSample, stopRecord: stopRecordSample, clearRecord: clearRecordSample, state: stateSampler, isRecorded: isRecordedSampler, audioBuffer: audioBufferSampler } = useSampler();
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
 
-
+    function play(data: PianoToneKeyData) {
+        if(type.value === 'synthesizer') {
+            playKeySynthesizer(data, attackTime.value);
+        } else {
+            const index = keys.value.indexOf(data);
+            playSampler(index, keys.value.length);
+        }
+    }
+    function stop(data: PianoToneKeyData) {
+        if(type.value === 'synthesizer') {
+            stopKeySynthesizer(data, releaseTime.value);
+        } else {
+            stopSampler();
+        }
+    }
 
     const mouseLeave = (event: MouseEvent, data: PianoToneKeyData) => {
-        stopKey(data, releaseTime.value);
+        stop(data);
     }
     const mouseEnter = (event: MouseEvent, data: PianoToneKeyData) => {
         if(event.buttons === 1) {
-            playKey(data, attackTime.value);
+            play(data);
         }
     }
 
@@ -103,21 +177,34 @@ import type { PianoToneKeyData } from "./types";
         if(!keyboardKeyCodes.includes(e.code) ) return
         const index = keyboardKeyCodes.indexOf(e.code)
         if(index === -1) return;
-        playKey(keys.value[index + octaveShift], attackTime.value);
+        play(keys.value[index + octaveShift]);
     };
     const onKeyup = (e: KeyboardEvent) => {
         const octaveShift = 12;
         if(!keyboardKeyCodes.includes(e.code) ) return
         const index = keyboardKeyCodes.indexOf(e.code)
         if(index === -1) return;
-        stopKey(keys.value[index + octaveShift], releaseTime.value);
+        stop(keys.value[index + octaveShift]);
     };
+
+    const trimSilenceHandler = () => {
+        if(audioBufferSampler.value) {
+            audioBufferSampler.value = trimSilence(audioBufferSampler.value);
+        }
+    }
 
     window.addEventListener('keydown', onKeydown);
     window.addEventListener('keyup', onKeyup);
     onUnmounted(() => {
         window.removeEventListener('keydown', onKeydown);
         window.removeEventListener('keyup', onKeyup);
+    });
+    watch(isRecordedSampler, (value) => {
+        if(value) {
+            type.value = 'sampler';
+        } else {
+            type.value = 'synthesizer';
+        }
     });
     </script>
     <style module>

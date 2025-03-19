@@ -5,7 +5,7 @@
         <MetronomeModule v-if="isMetronomeVisible" :class="$style.metronome" />
         <LooperModule v-if="isLooperVisible" :class="$style.looper"/>
         <ChordsSequencerModule v-if="isChordSequencerVisible" :class="$style.chordsSequencer"/>
-        <PianoModule v-if="isPianoVisible" :class="$style.piano"/>
+        <SynthesizerModule v-if="isSynthesizerVisible" :class="$style.piano"/>
       </div>
       <HorizontalList :class="$style.controls">
           <DefaultButton @click="isMetronomeVisible = !isMetronomeVisible" :type="isMetronomeVisible ? 'primary' : 'secondary'">
@@ -19,8 +19,8 @@
             <ChordSequencerIcon />
             Chord Sequence
           </DefaultButton>
-          <DefaultButton :type="isPianoVisible ? 'primary' : 'secondary'" @click="isPianoVisible = !isPianoVisible">
-            <PianoIcon /> Synth
+          <DefaultButton :type="isSynthesizerVisible ? 'primary' : 'secondary'" @click="isSynthesizerVisible = !isSynthesizerVisible">
+            <PianoIcon /> Synthesizer
           </DefaultButton>
       </HorizontalList>
     </VerticalList>
@@ -31,20 +31,20 @@
 import HorizontalList from '@/components/HorizontalList.vue';
 import LooperModule from '@/components/Modules/LooperModule.vue';
 import MetronomeModule from '@/components/Modules/MetronomeModule.vue';
-import PianoModule from './components/Modules/PianoModule.vue';
+import SynthesizerModule from '@/components/Modules/SynthesizerModule.vue';
 import ChordsSequencerModule from './components/Modules/ChordsSequencerModule.vue';
 import DefaultLayout from '@/layouts/DefaultLayout.vue';
 import VerticalList from '@/components/VerticalList.vue';
 import { ref } from 'vue';
-import DefaultButton from './components/DefaultButton.vue';
-import PianoIcon from './components/Icons/PianoIcon.vue';
-import ChordSequencerIcon from './components/Icons/ChordSequencerIcon.vue';
-import MetronomeIcon from './components/Icons/MetronomeIcon.vue';
-import LooperIcon from './components/Icons/LooperIcon.vue';
+import DefaultButton from '@/components/DefaultButton.vue';
+import PianoIcon from '@/components/Icons/PianoIcon.vue';
+import ChordSequencerIcon from '@/components/Icons/ChordSequencerIcon.vue';
+import MetronomeIcon from '@/components/Icons/MetronomeIcon.vue';
+import LooperIcon from '@/components/Icons/LooperIcon.vue';
 
 const isMetronomeVisible = ref(true);
 const isLooperVisible = ref(true);
-const isPianoVisible = ref(false);
+const isSynthesizerVisible = ref(false);
 const isChordSequencerVisible = ref(false);
 </script>
 
@@ -70,6 +70,10 @@ const isChordSequencerVisible = ref(false);
   grid-column: span 6;
   grid-row: span 2;
 }
+.sampler {
+    grid-column: span 6;
+    grid-row: span 2;
+  }
 .chordsSequencer {
   grid-column: span 6;
   grid-row: span 1;
@@ -90,6 +94,10 @@ const isChordSequencerVisible = ref(false);
   .looper {
     grid-column: span 2;
     grid-row: span 1;
+  }
+  .sampler {
+    grid-column: span 2;
+    grid-row: span 2;
   }
 }
 .controls {
