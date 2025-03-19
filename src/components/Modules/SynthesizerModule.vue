@@ -291,8 +291,12 @@
         display: flex;
         align-items: center;
         gap: 5px;
+        
         @media (max-width: 600px) {
+            flex-wrap: wrap;
+            justify-content: center;
             padding-bottom: 10px;
+            width: 100%;
         }
     }
     </style>

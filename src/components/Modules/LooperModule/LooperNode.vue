@@ -63,11 +63,11 @@ const handleTrimSilence = async () => {
 
 looperEventTarget.addEventListener(STOP_EVENT, stop);
 looperEventTarget.addEventListener(PLAY_EVENT, () => {
-    stop();
+    play();
     if (isRecorded.value) play();
 });
 looperEventTarget.addEventListener(CLEAR_EVENT, () => {
-    stop();
+    clearRecord();
     if (isRecorded.value) clearRecord();
 });
 </script>

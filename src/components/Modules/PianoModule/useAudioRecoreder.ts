@@ -18,9 +18,12 @@ export const useAudioRecorder = () => {
             console.error("Media devices not supported");
             return;
         }
-
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder.value = new MediaRecorder(stream);
+    });
+
+    const record = () => {
+        if (!mediaRecorder.value) return;
         mediaRecorder.value.ondataavailable = (ev: BlobEvent) => {
             chunks.value.push(ev.data);
         };
@@ -31,11 +34,8 @@ export const useAudioRecorder = () => {
                 audioBuffer.value = audioBufferInner;
             });
         };
-    });
-
-    const record = () => {
-        if (!mediaRecorder.value) return;
         clearRecord();
+        console.log("record");
         mediaRecorder.value.start();
         state.value = "record";
     };
