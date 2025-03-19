@@ -6,6 +6,7 @@
             square ? $style.square : '',
             { [$style.disabled]: disabled }
         ]" 
+        :title="title"
         :disabled="disabled"
         @click="$emit('click')"
     >
@@ -16,8 +17,14 @@
 <script lang="ts" setup>
 defineProps<{
     disabled?: boolean
-    square?: boolean
+    square?: false
     type?: 'primary' | 'secondary'
+    title?: string
+} | {
+    disabled?: boolean
+    square: true
+    type?: 'primary' | 'secondary'
+    title: string
 }>()
 
 defineEmits<{

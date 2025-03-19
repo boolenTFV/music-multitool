@@ -3,18 +3,18 @@
         <div v-if="isNotSupporeted">Is not supported</div>
         <VerticalList :class="$style.controls" justify="center" align="center" gap="10px">
             <HorizontalList  gap="10px">
-                <DefaultButton :disabled="state !== 'default'" @click="record" square>
+                <DefaultButton :disabled="state !== 'default'" @click="record" square title="Record">
                     <RecordIcon :size="24"/>
                 </DefaultButton>
-                <DefaultButton :disabled="state !== 'record' && state !== 'play'" @click="stop" square>
+                <DefaultButton :disabled="state !== 'record' && state !== 'play'" @click="stop" square title="Stop">
                     <StopIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
             <HorizontalList gap="10px">
-                <DefaultButton :disabled="state !== 'default' || !isRecorded" @click="play" square>
+                <DefaultButton :disabled="state !== 'default' || !isRecorded" @click="play" square title="Play">
                     <PlayIcon />
                 </DefaultButton>
-                <DefaultButton :disabled="state !== 'default' || !isRecorded"  @click="clearRecord" square>
+                <DefaultButton :disabled="state !== 'default' || !isRecorded"  @click="clearRecord" square title="Clear">
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>

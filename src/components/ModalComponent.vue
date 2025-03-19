@@ -1,7 +1,7 @@
 <template>
     <div :class="$style.modal">
         <div :class="$style.modalContent">
-            <DefaultButton :class="$style.closeButton" @click="closeModal" square><CloseIcon /></DefaultButton>
+            <DefaultButton :class="$style.closeButton" @click="closeModal" square title="Close modal"><CloseIcon /></DefaultButton>
             <h2 :class="$style.modalHeader">
                 <slot name="header" />
             </h2>

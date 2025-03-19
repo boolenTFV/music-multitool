@@ -4,16 +4,16 @@
             <div :class="$style.container">
                 <div :class="$style.tool_panel">
                     <div :class="$style.button_container">    
-                        <DefaultButton :type="oscillatorType === 'sine' ? 'primary' : 'secondary'" square @click="oscillatorType = 'sine'">
+                        <DefaultButton title="Sine" :type="oscillatorType === 'sine' ? 'primary' : 'secondary'" square @click="oscillatorType = 'sine'">
                             <SineWaveIcon></SineWaveIcon>
                         </DefaultButton>
-                        <DefaultButton :type="oscillatorType === 'square' ? 'primary' : 'secondary'" square @click="oscillatorType = 'square'">
+                        <DefaultButton title="Square" :type="oscillatorType === 'square' ? 'primary' : 'secondary'" square @click="oscillatorType = 'square'">
                             <SquareWaveIcon></SquareWaveIcon>
                         </DefaultButton>
-                        <DefaultButton :type="oscillatorType === 'triangle' ? 'primary' : 'secondary'" square @click="oscillatorType = 'triangle'">
+                        <DefaultButton title="Triangle" :type="oscillatorType === 'triangle' ? 'primary' : 'secondary'" square @click="oscillatorType = 'triangle'">
                             <TriangleWaveIcon></TriangleWaveIcon>
                         </DefaultButton>
-                        <DefaultButton :type="oscillatorType === 'sawtooth' ? 'primary' : 'secondary'" square @click="oscillatorType = 'sawtooth'">
+                        <DefaultButton title="Sawtooth" :type="oscillatorType === 'sawtooth' ? 'primary' : 'secondary'" square @click="oscillatorType = 'sawtooth'">
                             <SawtoothWaveIcon></SawtoothWaveIcon>
                         </DefaultButton>
                     </div>

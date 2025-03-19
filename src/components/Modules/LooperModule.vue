@@ -9,11 +9,11 @@
         </div>
         
         <HorizontalList>
-            <DefaultButton @click="loppersCount++" :disabled="loppersCount >= 8" square>+</DefaultButton>
-            <DefaultButton @click="loppersCount--" :disabled="loppersCount <= 1" square>-</DefaultButton>
-            <DefaultButton @click="playAll" square><PlayIcon :size="24"/></DefaultButton>
-            <DefaultButton @click="stopAll" square><StopIcon /></DefaultButton>
-            <DefaultButton @click="clearAll" square><ClearIcon /></DefaultButton>
+            <DefaultButton @click="loppersCount++" :disabled="loppersCount >= 8" square title="Add looper">+</DefaultButton>
+            <DefaultButton @click="loppersCount--" :disabled="loppersCount <= 1" square title="Remove looper">-</DefaultButton>
+            <DefaultButton @click="playAll" square title="Play all loopers"><PlayIcon :size="24"/></DefaultButton>
+            <DefaultButton @click="stopAll" square title="Stop all loopers"><StopIcon /></DefaultButton>
+            <DefaultButton @click="clearAll" square title="Clear all loopers"><ClearIcon /></DefaultButton>
         </HorizontalList>
     </VerticalList>
 </BlockContainer>

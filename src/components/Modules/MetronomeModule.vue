@@ -20,8 +20,8 @@
                     i === currentTackt && $style.active
                 ]" :key="i"></div>
             </div>
-            <DefaultButton v-if="state != 'started'" @click="start" square><PlayIcon /></DefaultButton>
-            <DefaultButton v-else @click="stop" square><StopIcon :size="24"/></DefaultButton>
+            <DefaultButton v-if="state != 'started'" @click="start" square title="Play metronome"><PlayIcon /></DefaultButton>
+            <DefaultButton v-else @click="stop" square title="Stop metronome"><StopIcon :size="24"/></DefaultButton>
         </VerticalList>
     </BlockContainer>
 </template>
