@@ -12,6 +12,8 @@ export const useAudioRecorder = () => {
     const source = ref<AudioBufferSourceNode>();
     const isRecorded = computed(() => Boolean(audioBuffer.value));
     const destination = ref<AudioNode>(audioContext.value.destination);
+    const pauseTime = ref<number>();
+    const startTime = ref<number>(0);
 
     onMounted(async () => {
         if (!navigator.mediaDevices) {
@@ -45,36 +47,38 @@ export const useAudioRecorder = () => {
         state.value = "default";
     };
 
+
     const clearRecord = () => {
         if (!mediaRecorder.value) return;
         chunks.value = [];
         audioBuffer.value = undefined;
+        pauseTime.value = undefined;
+        startTime.value = 0;
     };
 
     const stopPlay = () => {
         if (!source.value) return;
         source.value.stop();
         state.value = "default";
+        pauseTime.value = undefined;
     };
 
-    const stop = () => {
-        if (state.value === "record") {
-            stopRecord();
-        } else {
-            stopPlay();
-        }
+    const pausePlay = async () => {
+        stopPlay();
+        pauseTime.value = Date.now();
     };
 
     const play = async () => {
         source.value = audioContext.value.createBufferSource();
         if (!audioBuffer.value) return;
+        if(!pauseTime.value) {
+            startTime.value = Date.now();
+        }
         source.value.buffer = audioBuffer.value;
         source.value.connect(destination.value);
-        source.value.start();
-        source.value.addEventListener("ended", () => {
-            if (state.value !== "play") return;
-            play();
-        });
+        const duration = audioBuffer.value.duration || 0;
+        const offset = pauseTime.value ? (pauseTime.value - startTime.value) / 1000 : 0;
+        source.value.start(0, offset % duration);
         state.value = "play";
     };
 
@@ -85,6 +89,8 @@ export const useAudioRecorder = () => {
         stop,
         play,
         clearRecord,
+        pausePlay,
+        source,
         audioBuffer,
         destination,
         state,

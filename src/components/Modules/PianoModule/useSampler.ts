@@ -1,12 +1,16 @@
 import { useAudioContext } from "@/composables/useAudioContext";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { useAudioRecorder } from "./useAudioRecoreder";
 
 
 export const useSampler = () => {
     const audioContext = useAudioContext();
     const pitchShifterNode = ref<AudioWorkletNode>();
-    const { destination, play: playRecord, stopPlay, stopRecord, state, isRecorded, clearRecord, record, audioBuffer } = useAudioRecorder();
+    
+    const mode = ref<"classic" | "continous">("classic");
+    const maxGain = ref(1);
+    const gainNode = audioContext.value.createGain();
+    const { destination, play: playRecord, stopPlay, pausePlay, stopRecord, state, isRecorded, clearRecord, record, audioBuffer, source} = useAudioRecorder();
     const initAudioWorklet = async () => {
         await audioContext.value.audioWorklet.addModule(new URL("@/AudioProcessors/PitchShifterProcessor.js", import.meta.url));
         pitchShifterNode.value = new AudioWorkletNode(
@@ -15,12 +19,13 @@ export const useSampler = () => {
         );
         
         pitchShifterNode.value.connect(compressor);
-        compressor.connect(audioContext.value.destination);
+        compressor.connect(gainNode);
+        gainNode.connect(audioContext.value.destination);
         destination.value = pitchShifterNode.value;
     };
 
     const compressor = audioContext.value.createDynamicsCompressor();
-    compressor.threshold.value = 0.5;
+    compressor.threshold.value = -30;
     compressor.knee.value = 10;
     compressor.ratio.value = 5;
     compressor.attack.value = 0.1;
@@ -31,6 +36,7 @@ export const useSampler = () => {
         await initAudioWorklet();
     })
 
+
     const play = (i: number = 6) => {
         if(pitchShifterNode.value) {
             const pitchRatio = pitchShifterNode.value.parameters.get("pitchRatio") as AudioParam;
@@ -38,13 +44,26 @@ export const useSampler = () => {
             const ratioNormalized = (offset - 1);
             pitchRatio.setValueAtTime(ratioNormalized, audioContext.value.currentTime);
         }
-        
+        gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + 0.05, 0.025);
         playRecord();
     }
     const stop = () => {
-        stopPlay()
+        if(mode.value === "continous") {
+            pausePlay();
+        } else {
+            stopPlay()
+        }
+        gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + 0.05, 0.025);
     }
 
+    watch([mode, source], ([newMode, newSource]) => {
+        if(!newSource) return;
+        if(newMode === "continous") {
+            newSource.loop = true;
+        } else {
+            newSource.loop = false;
+        }
+    });
     return {
         play,
         record,
@@ -54,6 +73,8 @@ export const useSampler = () => {
         stopRecord,
         audioBuffer,
         state,
-        isRecorded
+        isRecorded,
+        mode,
+        maxGain
     }
 }

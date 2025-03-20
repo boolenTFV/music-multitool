@@ -70,6 +70,13 @@
                             Trim silence
                         </DefaultButton>
                     </div>
+                    <div :class="$style.button_container" v-if="type === 'sampler'">
+                        <label :class="$style.range_label">
+                            <div><div>Classic mode /</div> <div>Continous mode</div></div>
+                            <DefaultSwitch v-model="isContinousSamplerMode" title="Sampler node"/>
+                            
+                        </label>
+                    </div>
                     <div :class="$style.range_container">
                         <label :class="$style.range_label">
                             <span>Attack</span>
@@ -83,7 +90,7 @@
                     <div :class="$style.range_container">
                         <label :class="$style.range_label">
                             <span>Gain</span>
-                            <RangeInput v-model="maxVolume" type="number" :min="0" :max="1" :step="0.1" compact/>
+                            <RangeInput v-model="gain" type="number" :min="0" :max="200" :step="5" compact/>
                         </label>
                     </div>
 
@@ -137,20 +144,27 @@
     import { useSampler } from "./PianoModule/useSampler";
     import type { PianoToneKeyData } from "./types";
     import { trimSilence } from "@/utils/trimSilence";
+    import DefaultSwitch from "@/components/DefaultSwitch.vue";
 
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
     const releaseTime = ref(200);
+    const isContinousSamplerMode = ref(false);
+    const gain = ref(80);
 
     const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
-    const { play: playSampler, stop: stopSampler, record: recordSample, stopRecord: stopRecordSample, clearRecord: clearRecordSample, state: stateSampler, isRecorded: isRecordedSampler, audioBuffer: audioBufferSampler } = useSampler();
+    const { play: playSampler, stop: stopSampler, record: recordSample, stopRecord: stopRecordSample, clearRecord: clearRecordSample, state: stateSampler, isRecorded: isRecordedSampler, audioBuffer: audioBufferSampler, mode: modeSampler, maxGain: maxGainSampler } = useSampler();
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
-
+    const currentSamplerKey = ref<PianoToneKeyData>();
     async function play(data: PianoToneKeyData) {
         if(type.value === 'synthesizer') {
             playKeySynthesizer(data, attackTime.value);
         } else {
             const index = keys.value.indexOf(data);
+            if(currentSamplerKey.value) {
+                stopSampler();
+            }
+            currentSamplerKey.value = data;
             playSampler(index);
         }
     }
@@ -158,7 +172,10 @@
         if(type.value === 'synthesizer') {
             stopKeySynthesizer(data, releaseTime.value);
         } else {
-            stopSampler();
+            if(currentSamplerKey.value === data) {
+                stopSampler();
+                currentSamplerKey.value = undefined;
+            }
         }
     }
 
@@ -170,7 +187,17 @@
             play(data);
         }
     }
-
+    watch(isContinousSamplerMode, (value) => {
+        if(value) {
+            modeSampler.value = "continous";
+        } else {
+            modeSampler.value = "classic";
+        }
+    });
+    watch(gain, (value) => {
+        maxGainSampler.value = value/100;
+        maxVolume.value = value/100;
+    }, {immediate: true});
     const onKeydown = (e: KeyboardEvent) => {
         if (e.repeat) { return }
         const octaveShift = 12;
@@ -217,11 +244,11 @@
         justify-content: stretch;
         height: 100%;
         @media (max-width: 600px) {
-            height: calc(100vh);
             max-height: 500px;
         }
     }
     .piano {
+        min-height: 250px;
         user-select: none;
         display: flex;
         flex: 1;
@@ -246,12 +273,13 @@
     .tool_panel {
         position: relative;
         display: flex;
+        flex-wrap: wrap;
         justify-content: start;
         align-items: center;
         padding: 10px;
         z-index: 1;
         width: calc(100% - 20px);
-        height: 60px;
+        height: auto;
         background-color: #f0f0f0;
         border-radius: 4px 4px 0 0;
         border: none;
@@ -259,10 +287,7 @@
         flex: 0 0 auto;
         gap: 20px;
         @media (max-width: 600px) {
-            flex-direction: column;
-            height: auto;
             gap: 5px;
-            align-items: center;
         }
     }
     .switch_label {
@@ -294,7 +319,6 @@
         
         @media (max-width: 600px) {
             flex-wrap: wrap;
-            justify-content: center;
             padding-bottom: 10px;
             width: 100%;
         }

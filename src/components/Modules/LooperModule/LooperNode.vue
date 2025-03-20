@@ -25,7 +25,7 @@
     </div>
 </template>
 <script lang="ts" setup>
-import {onMounted, ref } from 'vue';
+import {onMounted, ref, watch } from 'vue';
 import VerticalList from '@/components/VerticalList.vue';
 import { CLEAR_EVENT, looperEventTarget, PLAY_EVENT, STOP_EVENT } from '@/eventTargets/looperEventTarget';
 import DefaultButton from '@/components/DefaultButton.vue';
@@ -41,9 +41,11 @@ const isNotSupporeted = ref(false);
 
 const {
     record,
-    stop,
-    play,
+    stopPlay,
+    stopRecord,
+    play: playSample,
     clearRecord,
+    source,
     state,
     isRecorded,
     audioBuffer
@@ -55,12 +57,28 @@ onMounted(async () => {
     }
 });
 
+
+const play = () => {
+    playSample();
+}
+const stop = () => {
+    if (state.value === "record") {
+        stopRecord();
+    } else {
+        stopPlay();
+    }
+};
+
 const handleTrimSilence = async () => {
     if (!audioBuffer.value) return;
     const trimmedBuffer = trimSilence(audioBuffer.value);
     audioBuffer.value = trimmedBuffer;
 }
-
+watch(source, (newSource) => {
+    if(newSource) {
+        newSource.loop = true;
+    }
+});
 looperEventTarget.addEventListener(STOP_EVENT, stop);
 looperEventTarget.addEventListener(PLAY_EVENT, () => {
     play();
