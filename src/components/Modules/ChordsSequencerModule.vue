@@ -101,7 +101,6 @@ const playSequence = async (firstBeat: boolean = false) => {
         } else {
             while(!playChord(chord)) {
                 await timeout(5);
-                console.log('replay chord');
             }
             await timeout(oneBeatTime - 10);
             stopChord(chord);

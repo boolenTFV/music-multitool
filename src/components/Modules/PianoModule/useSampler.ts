@@ -20,21 +20,23 @@ export const useSampler = () => {
     };
 
     const compressor = audioContext.value.createDynamicsCompressor();
-    compressor.threshold.value = -50;
-    compressor.knee.value = 40;
-    compressor.ratio.value = 12;
-    compressor.attack.value = 0;
-    compressor.release.value = 0.25;
+    compressor.threshold.value = 0.5;
+    compressor.knee.value = 10;
+    compressor.ratio.value = 5;
+    compressor.attack.value = 0.1;
+    compressor.release.value = 0.1;
 
 
     onMounted(async () => {
         await initAudioWorklet();
     })
 
-    const play = (i: number = 6, keysCount: number = 48) => {
+    const play = (i: number = 6) => {
         if(pitchShifterNode.value) {
             const pitchRatio = pitchShifterNode.value.parameters.get("pitchRatio") as AudioParam;
-            pitchRatio.value = ((keysCount - i) * 2/keysCount) - 1;
+            const offset = Math.pow(2, ((12 - i)/12));
+            const ratioNormalized = (offset - 1);
+            pitchRatio.setValueAtTime(ratioNormalized, audioContext.value.currentTime);
         }
         
         playRecord();

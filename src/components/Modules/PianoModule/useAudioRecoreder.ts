@@ -35,7 +35,6 @@ export const useAudioRecorder = () => {
             });
         };
         clearRecord();
-        console.log("record");
         mediaRecorder.value.start();
         state.value = "record";
     };

@@ -5,14 +5,15 @@ class PitchShifterProcessor extends AudioWorkletProcessor {
   bufferSize;
   buffer;
   bufferIndex;
+  lastOutput;
 
   static get parameterDescriptors() {
     return [
       {
         name: "pitchRatio",
-        defaultValue: 0.1,
-        minValue: -1,
-        maxValue: 1,
+        defaultValue: 0, // Perfect pitch
+        minValue: -3,
+        maxValue: 3,
         automationRate: "k-rate",
       },
     ];
@@ -25,10 +26,11 @@ class PitchShifterProcessor extends AudioWorkletProcessor {
     this.bufferSize = 1024;
     this.buffer = new Float32Array(this.bufferSize);
     this.bufferIndex = 0;
+    this.lastOutput = 0;
   }
 
   process(inputs, outputs, parameters) {
-    const pitchRatio = parameters.pitchRatio;
+    const pitchRatio = parameters.pitchRatio[0];
     const input = inputs[0];
     const output = outputs[0];
     
@@ -37,14 +39,35 @@ class PitchShifterProcessor extends AudioWorkletProcessor {
       const outputChannel = output[0];
 
       for (let i = 0; i < inputChannel.length; i++) {
+        // Write to buffer
         this.buffer[this.bufferIndex] = inputChannel[i];
         this.bufferIndex = (this.bufferIndex + 1) % this.bufferSize;
 
+        // Calculate phase increment with smoothing
         this.phaseIncrement = (this.bufferSize / (this.bufferSize - 1)) * pitchRatio;
 
-        const readIndex = (this.bufferIndex - this.phase + this.bufferSize) % this.bufferSize;
-        outputChannel[i] = this.buffer[Math.floor(readIndex)];
+        // Calculate read position with phase
+        const readPosition = (this.bufferIndex - this.phase + this.bufferSize) % this.bufferSize;
+        
+        // Get integer and fractional parts
+        const readIndexFloor = Math.floor(readPosition);
+        const readIndexCeil = (readIndexFloor + 1) % this.bufferSize;
+        const frac = readPosition - readIndexFloor;
 
+        // Linear interpolation
+        const sampleFloor = this.buffer[readIndexFloor];
+        const sampleCeil = this.buffer[readIndexCeil];
+        const interpolatedSample = sampleFloor + frac * (sampleCeil - sampleFloor);
+
+        // Smooth transition between old and new output
+        const smoothingFactor = 0.96;
+        const smoothedOutput = this.lastOutput * smoothingFactor + interpolatedSample * (1 - smoothingFactor);
+
+        // Update output
+        outputChannel[i] = smoothedOutput;
+        this.lastOutput = smoothedOutput;
+
+        // Update phase
         this.phase += this.phaseIncrement;
         if (this.phase >= this.bufferSize) {
           this.phase -= this.bufferSize;

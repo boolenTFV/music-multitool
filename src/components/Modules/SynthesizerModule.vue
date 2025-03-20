@@ -146,12 +146,12 @@
     const { play: playSampler, stop: stopSampler, record: recordSample, stopRecord: stopRecordSample, clearRecord: clearRecordSample, state: stateSampler, isRecorded: isRecordedSampler, audioBuffer: audioBufferSampler } = useSampler();
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
 
-    function play(data: PianoToneKeyData) {
+    async function play(data: PianoToneKeyData) {
         if(type.value === 'synthesizer') {
             playKeySynthesizer(data, attackTime.value);
         } else {
             const index = keys.value.indexOf(data);
-            playSampler(index, keys.value.length);
+            playSampler(index);
         }
     }
     function stop(data: PianoToneKeyData) {
