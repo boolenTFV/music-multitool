@@ -34,4 +34,7 @@
     --link-color: var(--accent-color);
     --link-hover-color: rgb(120, 120, 255);
     --link-active-color: rgb(80, 80, 255);
+    --color-error: rgb(255, 100, 100);
+    --color-success: rgb(133, 255, 186);
+    --color-warning: rgb(255, 255, 100);
 }
