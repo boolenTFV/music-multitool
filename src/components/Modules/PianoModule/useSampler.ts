@@ -59,7 +59,6 @@ export const useSampler = () => {
             gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + 0.05, releaseTime/0.025);
             pausePlay();
         } else {
-            console.log('releaseTime', releaseTime);
             gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTime, releaseTime/2);
             stopPlay(audioContext.value.currentTime + releaseTime);
         }

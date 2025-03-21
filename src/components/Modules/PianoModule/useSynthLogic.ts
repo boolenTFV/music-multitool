@@ -7,7 +7,6 @@ import { useAudioContext } from "@/composables/useAudioContext";
 
 export const useSynthLogic = () => {
     const audioContext = useAudioContext();
-    console.log('in useSynthLogic');
     const maxVolume = ref(1);
     const oscillatorType = ref<'sine' | 'square' | 'triangle' | 'sawtooth'>('sine');
     const mixerNode = ref<AudioWorkletNode>();
