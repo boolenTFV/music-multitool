@@ -56,9 +56,9 @@ export const useAudioRecorder = () => {
         startTime.value = 0;
     };
 
-    const stopPlay = () => {
+    const stopPlay = (when:number = 0) => {
         if (!source.value) return;
-        source.value.stop();
+        source.value.stop(when);
         state.value = "default";
         pauseTime.value = undefined;
     };

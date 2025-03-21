@@ -1,11 +1,17 @@
-import { reactive, ref, watch } from "vue";
+import { reactive, ref, unref, watch } from "vue";
 import { useOscilator } from "./useOscilator";
 import type { PianoToneKeyData, ToneKeyData } from "../types";
 import { generateOctave } from "./useKeys";
+import { useAudioContext } from "@/composables/useAudioContext";
+
 
 export const useSynthLogic = () => {
+    const audioContext = useAudioContext();
+    console.log('in useSynthLogic');
     const maxVolume = ref(1);
     const oscillatorType = ref<'sine' | 'square' | 'triangle' | 'sawtooth'>('sine');
+    const mixerNode = ref<AudioWorkletNode>();
+
     const activeKeyTones = reactive<{
         key1: ToneKeyData | null,
         key2: ToneKeyData | null,
@@ -15,10 +21,22 @@ export const useSynthLogic = () => {
         key2: null,
         key3: null,
     })
+
     const keys = ref<PianoToneKeyData[]>([...generatePianoOctave(3),...generatePianoOctave(4), ...generatePianoOctave(5), ...generatePianoOctave(6)]);
-    const { oscillator: oscillator1, busy: busy1, playNote: playNote1, stopNote: stopNote1, maxVolume: maxVolume1 } = useOscilator();
-    const { oscillator: oscillator2, busy: busy2, playNote: playNote2, stopNote: stopNote2, maxVolume: maxVolume2 } = useOscilator();
-    const { oscillator: oscillator3, busy: busy3, playNote: playNote3, stopNote: stopNote3, maxVolume: maxVolume3 } = useOscilator();
+    const { oscillator: oscillator1, busy: busy1, playNote: playNote1, stopNote: stopNote1, maxVolume: maxVolume1, output: output1 } = useOscilator(unref(audioContext));
+    const { oscillator: oscillator2, busy: busy2, playNote: playNote2, stopNote: stopNote2, maxVolume: maxVolume2, output: output2 } = useOscilator(unref(audioContext));
+    const { oscillator: oscillator3, busy: busy3, playNote: playNote3, stopNote: stopNote3, maxVolume: maxVolume3, output: output3 } = useOscilator(unref(audioContext));
+
+    audioContext.value.audioWorklet.addModule(new URL("@/AudioProcessors/MixerProcessor.js", import.meta.url)).then(() => {
+        mixerNode.value = new AudioWorkletNode(
+            audioContext.value,
+            "mixer-processor",
+        );
+        output1.connect(mixerNode.value);
+        output2.connect(mixerNode.value);
+        output3.connect(mixerNode.value);
+        mixerNode.value.connect(audioContext.value.destination);
+    });
     const playKey = (data: ToneKeyData, attackTime: number = 0.2) => {
         if(!busy1.value) {
             activeKeyTones.key1 = data;

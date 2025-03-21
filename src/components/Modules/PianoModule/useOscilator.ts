@@ -1,17 +1,14 @@
-import { useAudioContext } from "@/composables/useAudioContext";
 import type { ToneKeyData } from "../types";
 import { ref } from "vue";
 
-export const useOscilator = () => {
-    const audioContext = useAudioContext();
-    const oscillator = audioContext.value.createOscillator();
-    const gain = audioContext.value.createGain();
+export const useOscilator = (audioContext: AudioContext) => {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
     const busy = ref(false);
     const isOn = ref(false);
     const maxVolume = ref(1);
     const initOscillator = () => {
         oscillator.connect(gain);
-        gain.connect(audioContext.value.destination);
         oscillator.start();
         gain.gain.value = 0;
     }
@@ -25,16 +22,17 @@ export const useOscilator = () => {
             initOscillator();
         }
         oscillator.frequency.value = data.frequency;
-        gain.gain.cancelScheduledValues(audioContext.value.currentTime);
-        gain.gain.setTargetAtTime(maxVolume.value, audioContext.value.currentTime + attackTime, attackTime / 2);
+        gain.gain.cancelScheduledValues(audioContext.currentTime);
+        gain.gain.setTargetAtTime(maxVolume.value, audioContext.currentTime + attackTime, attackTime / 2);
     }
 
     const stopNote = (releaseTimeMs: number = 0.5) => {
         const releaseTime = releaseTimeMs / 1000;
         busy.value = false;
-        gain.gain.cancelScheduledValues(audioContext.value.currentTime);
-        gain.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTime, releaseTime / 2);
+        gain.gain.cancelScheduledValues(audioContext.currentTime);
+        gain.gain.setTargetAtTime(0, audioContext.currentTime + releaseTime, releaseTime / 2);
     }
+
 
     return {
         oscillator,
@@ -44,6 +42,7 @@ export const useOscilator = () => {
         maxVolume,
         initOscillator,
         playNote,
-        stopNote
+        stopNote,
+        output: gain
     }
 }

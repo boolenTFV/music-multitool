@@ -14,8 +14,8 @@ export const useSampler = () => {
     const initAudioWorklet = async () => {
         await audioContext.value.audioWorklet.addModule(new URL("@/AudioProcessors/PitchShifterProcessor.js", import.meta.url));
         pitchShifterNode.value = new AudioWorkletNode(
-        audioContext.value,
-        "pitch-shifter-processor",
+            audioContext.value,
+            "pitch-shifter-processor",
         );
         
         pitchShifterNode.value.connect(compressor);
@@ -37,23 +37,30 @@ export const useSampler = () => {
     })
 
 
-    const play = (i: number = 6) => {
+    const play = (i: number = 6, attackTime: number = 0.05) => {
         if(pitchShifterNode.value) {
             const pitchRatio = pitchShifterNode.value.parameters.get("pitchRatio") as AudioParam;
             const offset = Math.pow(2, ((12 - i)/12));
             const ratioNormalized = (offset - 1);
             pitchRatio.setValueAtTime(ratioNormalized, audioContext.value.currentTime);
         }
-        gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + 0.05, 0.025);
+        if(mode.value === "continous") {
+            gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + 0.05, attackTime/0.025);
+        }
+        if(mode.value === "classic") {
+            gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + attackTime, attackTime/2);
+        }
         playRecord();
     }
-    const stop = () => {
+    const stop = async (releaseTime: number = 0.05) => {
         if(mode.value === "continous") {
+            gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + 0.05, releaseTime/0.025);
             pausePlay();
         } else {
-            stopPlay()
+            console.log('releaseTime', releaseTime);
+            gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTime, releaseTime/2);
+            stopPlay(releaseTime);
         }
-        gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + 0.05, 0.025);
     }
 
     watch([mode, source], ([newMode, newSource]) => {

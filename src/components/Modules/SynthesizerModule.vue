@@ -151,8 +151,9 @@
     const releaseTime = ref(200);
     const isContinousSamplerMode = ref(false);
     const gain = ref(80);
-
+    console.log('before useSynthLogic');
     const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
+    console.log('after useOscillator');
     const { play: playSampler, stop: stopSampler, record: recordSample, stopRecord: stopRecordSample, clearRecord: clearRecordSample, state: stateSampler, isRecorded: isRecordedSampler, audioBuffer: audioBufferSampler, mode: modeSampler, maxGain: maxGainSampler } = useSampler();
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
     const currentSamplerKey = ref<PianoToneKeyData>();
@@ -162,10 +163,10 @@
         } else {
             const index = keys.value.indexOf(data);
             if(currentSamplerKey.value) {
-                stopSampler();
+                stopSampler(releaseTime.value);
             }
             currentSamplerKey.value = data;
-            playSampler(index);
+            playSampler(index, attackTime.value);
         }
     }
     function stop(data: PianoToneKeyData) {
@@ -173,13 +174,13 @@
             stopKeySynthesizer(data, releaseTime.value);
         } else {
             if(currentSamplerKey.value === data) {
-                stopSampler();
+                stopSampler(releaseTime.value);
                 currentSamplerKey.value = undefined;
             }
         }
     }
 
-    const mouseLeave = (event: MouseEvent, data: PianoToneKeyData) => {
+    const mouseLeave = (_: MouseEvent, data: PianoToneKeyData) => {
         stop(data);
     }
     const mouseEnter = (event: MouseEvent, data: PianoToneKeyData) => {

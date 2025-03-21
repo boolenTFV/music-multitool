@@ -51,7 +51,7 @@ import TunnerModule from './components/Modules/TunnerModule.vue';
 
 const isMetronomeVisible = ref(true);
 const isLooperVisible = ref(true);
-const isSynthesizerVisible = ref(false);
+const isSynthesizerVisible = ref(true);
 const isChordSequencerVisible = ref(false);
 const isTunner = ref(false);
 </script>
