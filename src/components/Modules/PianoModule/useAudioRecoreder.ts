@@ -7,11 +7,9 @@ export const useAudioRecorder = () => {
     const audioContext = useAudioContext();
 
     const chunks = ref<Blob[]>([]);
-    const state = ref<"record" | "play" | "default">("default");
+    const isRecording = ref(false);
     const audioBuffer = ref<AudioBuffer>();
-    const source = ref<AudioBufferSourceNode>();
     const isRecorded = computed(() => Boolean(audioBuffer.value));
-    const destination = ref<AudioNode>(audioContext.value.destination);
     const pauseTime = ref<number>();
     const startTime = ref<number>(0);
 
@@ -38,13 +36,13 @@ export const useAudioRecorder = () => {
         };
         clearRecord();
         mediaRecorder.value.start();
-        state.value = "record";
+        isRecording.value = true;
     };
 
     const stopRecord = async () => {
         if (!mediaRecorder.value) return;
         mediaRecorder.value.stop();
-        state.value = "default";
+        isRecording.value = false;
     };
 
 
@@ -56,45 +54,13 @@ export const useAudioRecorder = () => {
         startTime.value = 0;
     };
 
-    const stopPlay = (when:number = 0) => {
-        if (!source.value) return;
-        source.value.stop(when);
-        state.value = "default";
-        pauseTime.value = undefined;
-    };
-
-    const pausePlay = async () => {
-        stopPlay();
-        pauseTime.value = Date.now();
-    };
-
-    const play = async () => {
-        source.value = audioContext.value.createBufferSource();
-        if (!audioBuffer.value) return;
-        if(!pauseTime.value) {
-            startTime.value = Date.now();
-        }
-        source.value.buffer = audioBuffer.value;
-        source.value.connect(destination.value);
-        const duration = audioBuffer.value.duration || 0;
-        const offset = pauseTime.value ? (pauseTime.value - startTime.value) / 1000 : 0;
-        source.value.start(0, offset % duration);
-        state.value = "play";
-    };
-
     return {
         record,
-        stopPlay,
         stopRecord,
-        stop,
-        play,
         clearRecord,
-        pausePlay,
-        source,
         audioBuffer,
-        destination,
-        state,
-        isRecorded
+        isRecorded,
+        isRecording
     };
     
 }

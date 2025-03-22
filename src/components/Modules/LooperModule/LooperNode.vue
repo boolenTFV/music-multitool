@@ -3,22 +3,22 @@
         <div v-if="isNotSupporeted">Is not supported</div>
         <VerticalList :class="$style.controls" justify="center" align="center" gap="10px">
             <HorizontalList  gap="10px">
-                <DefaultButton :disabled="state !== 'default'" @click="record" square title="Record">
+                <DefaultButton :disabled="isRecorded || isPlaing" @click="record" square title="Record">
                     <RecordIcon :size="24"/>
                 </DefaultButton>
-                <DefaultButton :disabled="state !== 'record' && state !== 'play'" @click="stop" square title="Stop">
+                <DefaultButton :disabled="!isPlaing && !isRecording" @click="stop" square title="Stop">
                     <StopIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
             <HorizontalList gap="10px">
-                <DefaultButton :disabled="state !== 'default' || !isRecorded" @click="play" square title="Play">
+                <DefaultButton :disabled="isPlaing && isRecorded" @click="play" square title="Play">
                     <PlayIcon />
                 </DefaultButton>
-                <DefaultButton :disabled="state !== 'default' || !isRecorded"  @click="clearRecord" square title="Clear">
+                <DefaultButton :disabled="isPlaing && isRecorded"  @click="clearRecord" square title="Clear">
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
-            <DefaultButton :disabled="state !== 'default' || !isRecorded" @click="handleTrimSilence">
+            <DefaultButton :disabled="isPlaing || isRecording || !isRecorded" @click="handleTrimSilence">
                 Trim Silence
             </DefaultButton>
         </VerticalList>
@@ -36,20 +36,24 @@ import RecordIcon from '@/components/Icons/RecordIcon.vue';
 import HorizontalList from '@/components/HorizontalList.vue';
 import { trimSilence } from '@/utils/trimSilence';
 import { useAudioRecorder } from '@/components/Modules/PianoModule/useAudioRecoreder';
+import { useAudioPlayer } from '@/components/Modules/PianoModule/useAudioPlayer';
 
 const isNotSupporeted = ref(false);
 
 const {
     record,
-    stopPlay,
     stopRecord,
-    play: playSample,
     clearRecord,
-    source,
-    state,
     isRecorded,
+    isRecording,
     audioBuffer
 } = useAudioRecorder();
+const {
+    play: playSample,
+    stop: stopSample,
+    source,
+    isPlaing
+} = useAudioPlayer()
 
 onMounted(async () => {
     if (!navigator.mediaDevices) {
@@ -59,13 +63,14 @@ onMounted(async () => {
 
 
 const play = () => {
-    playSample();
+    if(!audioBuffer.value) return;
+    playSample(audioBuffer.value);
 }
 const stop = () => {
-    if (state.value === "record") {
+    if (isRecording.value) {
         stopRecord();
-    } else {
-        stopPlay();
+    } else if(isPlaing.value) {
+        stopSample();
     }
 };
 

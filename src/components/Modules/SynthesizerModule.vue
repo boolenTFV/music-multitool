@@ -42,7 +42,7 @@
                         </DefaultButton>
                         <DefaultButton
                             title="Record" @click="recordSample"
-                            v-if="!isRecordedSampler && stateSampler !== 'record'"
+                            v-if="!isRecordedSampler && !isRecordingSampler"
                             square
                         >
                             <RecordIcon :size="24"/>
@@ -50,7 +50,7 @@
                         <DefaultButton
                             title="Stop"
                             @click="stopRecordSample"
-                            v-if="stateSampler == 'record'"
+                            v-if="isRecordingSampler"
                             square
                         >
                             <StopIcon :size="24"/>
@@ -65,15 +65,20 @@
                         </DefaultButton>
                         <DefaultButton
                             @click="trimSilenceHandler"
-                            v-if="stateSampler !== 'record' && isRecordedSampler"
+                            v-if="!isRecordingSampler && isRecordedSampler"
                         >
                             Trim silence
                         </DefaultButton>
                     </div>
                     <div :class="$style.button_container" v-if="type === 'sampler'">
                         <label :class="$style.range_label">
-                            <div><div>Classic mode /</div> <div>Continous mode</div></div>
-                            <DefaultSwitch v-model="isContinousSamplerMode" title="Sampler node"/>
+                            <span>{{ modeSampler }}</span>
+                            <select v-model="modeSampler">
+                                <option disabled value="">Select mode</option>
+                                <option value="classic">classic</option>
+                                <option value="continous">continious</option>
+                                <option value="splited">splited</option>
+                            </select>
                             
                         </label>
                     </div>
@@ -144,15 +149,24 @@
     import { useSampler } from "./PianoModule/useSampler";
     import type { PianoToneKeyData } from "./types";
     import { trimSilence } from "@/utils/trimSilence";
-    import DefaultSwitch from "@/components/DefaultSwitch.vue";
 
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
     const releaseTime = ref(200);
-    const isContinousSamplerMode = ref(false);
     const gain = ref(80);
     const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
-    const { play: playSampler, stop: stopSampler, record: recordSample, stopRecord: stopRecordSample, clearRecord: clearRecordSample, state: stateSampler, isRecorded: isRecordedSampler, audioBuffer: audioBufferSampler, mode: modeSampler, maxGain: maxGainSampler } = useSampler();
+    const {
+        play: playSampler,
+        stop: stopSampler,
+        record: recordSample,
+        stopRecord: stopRecordSample,
+        clearRecord: clearRecordSample,
+        isRecording: isRecordingSampler,
+        isRecorded: isRecordedSampler,
+        audioBuffer: audioBufferSampler,
+        mode: modeSampler,
+        maxGain: maxGainSampler
+    } = useSampler();
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
     const currentSamplerKey = ref<PianoToneKeyData>();
     async function play(data: PianoToneKeyData) {
@@ -186,13 +200,6 @@
             play(data);
         }
     }
-    watch(isContinousSamplerMode, (value) => {
-        if(value) {
-            modeSampler.value = "continous";
-        } else {
-            modeSampler.value = "classic";
-        }
-    });
     watch(gain, (value) => {
         maxGainSampler.value = value/100;
         maxVolume.value = value/100;
