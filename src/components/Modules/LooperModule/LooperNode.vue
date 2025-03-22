@@ -11,10 +11,10 @@
                 </DefaultButton>
             </HorizontalList>
             <HorizontalList gap="10px">
-                <DefaultButton :disabled="isPlaing && isRecorded" @click="play" square title="Play">
+                <DefaultButton :disabled="isPlaing || !isRecorded" @click="play" square title="Play">
                     <PlayIcon />
                 </DefaultButton>
-                <DefaultButton :disabled="isPlaing && isRecorded"  @click="clearRecord" square title="Clear">
+                <DefaultButton :disabled="isPlaing || isRecording || !isRecorded"  @click="clearRecord" square title="Clear">
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
