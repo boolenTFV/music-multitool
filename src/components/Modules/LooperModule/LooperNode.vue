@@ -14,13 +14,14 @@
                 <DefaultButton :disabled="isPlaing || !isRecorded" @click="play" square title="Play">
                     <PlayIcon />
                 </DefaultButton>
-                <DefaultButton :disabled="isPlaing || isRecording || !isRecorded"  @click="clearRecord" square title="Clear">
+                <DefaultButton :disabled="isPlaing || isRecording || !isRecorded"  @click="handleClear" square title="Clear">
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
             <DefaultButton :disabled="isPlaing || isRecording || !isRecorded" @click="handleTrimSilence">
                 Trim Silence
             </DefaultButton>
+            <UploaderInput @change="handleFileChange" ref="fileInput"/>
         </VerticalList>
     </div>
 </template>
@@ -33,13 +34,16 @@ import PlayIcon from '@/components/Icons/PlayIcon.vue';
 import ClearIcon from '@/components/Icons/ClearIcon.vue';
 import StopIcon from '@/components/Icons/StopIcon.vue';
 import RecordIcon from '@/components/Icons/RecordIcon.vue';
+import UploaderInput from '@/components/UploaderInput.vue';
 import HorizontalList from '@/components/HorizontalList.vue';
 import { trimSilence } from '@/utils/trimSilence';
 import { useAudioRecorder } from '@/components/Modules/PianoModule/useAudioRecoreder';
 import { useAudioPlayer } from '@/components/Modules/PianoModule/useAudioPlayer';
+import { useAudioContext } from '@/composables/useAudioContext';
 
+const fileInput = ref<InstanceType<typeof UploaderInput>>();
 const isNotSupporeted = ref(false);
-
+const audioContext = useAudioContext();
 const {
     record,
     stopRecord,
@@ -61,7 +65,23 @@ onMounted(async () => {
     }
 });
 
-
+const handleFileChange = (file: File) => {
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onprogress = (event) => {    
+        console.log(event.target?.result);
+    }
+    reader.onload = (event) => {
+        const arrayBuffer = event.target?.result as ArrayBuffer;
+                // Decode the ArrayBuffer into an AudioBuffer
+        audioContext.value.decodeAudioData(arrayBuffer, (innerAudioBuffer: AudioBuffer) => {
+          console.log('AudioBuffer:', innerAudioBuffer);
+          audioBuffer.value = innerAudioBuffer;
+        });
+    }
+    reader.readAsArrayBuffer(file);
+}
 const play = () => {
     if(!audioBuffer.value) return;
     playSample(audioBuffer.value);
@@ -73,7 +93,11 @@ const stop = () => {
         stopSample();
     }
 };
-
+const handleClear = () => {
+    clearRecord();
+    if(!fileInput.value) return;
+    fileInput.value.clear();
+}
 const handleTrimSilence = async () => {
     if (!audioBuffer.value) return;
     const trimmedBuffer = trimSilence(audioBuffer.value);
@@ -90,8 +114,8 @@ looperEventTarget.addEventListener(PLAY_EVENT, () => {
     if (isRecorded.value) play();
 });
 looperEventTarget.addEventListener(CLEAR_EVENT, () => {
-    clearRecord();
-    if (isRecorded.value) clearRecord();
+    if (isRecorded.value) handleClear();
+    
 });
 </script>
 
@@ -100,7 +124,7 @@ looperEventTarget.addEventListener(CLEAR_EVENT, () => {
     padding: 16px;
     border-radius: 8px;
     background-color: var(--block-color);
-    aspect-ratio: 1/1;
+    aspect-ratio: 3/4;
 }
 .controls {
     width: 100%;
