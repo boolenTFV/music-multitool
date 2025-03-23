@@ -21,12 +21,12 @@ const draw = () => {
     const width = canvas.value?.width;
     const height = canvas.value?.height;
     if (!width || !height) return;
-    const amp = height / 2; // Amplitude scaling
+    const amp = height / 2;
     ctx.clearRect(0, 0, width, height);
     drawCenterLine(ctx, amp, width);
     if(!props.audioBuffer) return;
     const channelData = props.audioBuffer.getChannelData(0);
-    const step = Math.ceil((channelData.length * barWidth )/ width); // Step size for drawing
+    const step = Math.ceil((channelData.length * barWidth )/ width);
     
     for (let i = 0; i < width; i++) {
         let min = 1.0;
