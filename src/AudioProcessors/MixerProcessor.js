@@ -17,13 +17,8 @@ class MixerProcessor extends AudioWorkletProcessor {
         const input = inputs[inputIndex];
         for (let channel = 0; channel < input.length; channel++) {
           for (let sample = 0; sample < input[channel].length; sample++) {
-            output[channel][sample] += input[channel][sample];
+            output[channel][sample] += input[channel][sample] / inputs.length;
           }
-        }
-      }
-      for (let i = 0; i < output.length; i++) {
-        for (let j = 0; j < output[i].length; j++) {
-          output[i][j] = output[i][j] / inputs.length;
         }
       }
       return true; // Keep the processor alive

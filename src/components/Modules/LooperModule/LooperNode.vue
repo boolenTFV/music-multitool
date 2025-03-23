@@ -18,11 +18,19 @@
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
+            <HorizontalList gap="10px">
+                <UploaderInput @change="handleFileChange" ref="fileInput"/>
+                <DefaultButton @click="showAudioBufferModalVisible = true">
+                    show
+                </DefaultButton> 
+            </HorizontalList>
             <DefaultButton :disabled="isPlaing || isRecording || !isRecorded" @click="handleTrimSilence">
                 Trim Silence
             </DefaultButton>
-            <UploaderInput @change="handleFileChange" ref="fileInput"/>
         </VerticalList>
+        <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
+            <AudioBufferPrivew width="1000" height="100" :audioBuffer="audioBuffer" :class="$style.audioBufferPrivew" />
+        </ModalComponent>
     </div>
 </template>
 <script lang="ts" setup>
@@ -40,10 +48,13 @@ import { trimSilence } from '@/utils/trimSilence';
 import { useAudioRecorder } from '@/components/Modules/PianoModule/useAudioRecoreder';
 import { useAudioPlayer } from '@/components/Modules/PianoModule/useAudioPlayer';
 import { useAudioContext } from '@/composables/useAudioContext';
+import ModalComponent from '@/components/ModalComponent.vue';
+import AudioBufferPrivew from '@/components/AudioBufferPrivew.vue';
 
 const fileInput = ref<InstanceType<typeof UploaderInput>>();
 const isNotSupporeted = ref(false);
 const audioContext = useAudioContext();
+const showAudioBufferModalVisible = ref(false);
 const {
     record,
     stopRecord,
@@ -108,6 +119,9 @@ watch(source, (newSource) => {
         newSource.loop = true;
     }
 });
+watch(audioBuffer, (newAudioBuffer) => {
+    console.log(newAudioBuffer);
+});
 looperEventTarget.addEventListener(STOP_EVENT, stop);
 looperEventTarget.addEventListener(PLAY_EVENT, () => {
     play();
@@ -132,5 +146,9 @@ looperEventTarget.addEventListener(CLEAR_EVENT, () => {
     @media (max-width: 800px) {
         aspect-ratio: auto;
     }
+}
+.audioBufferPrivew {
+    width: 100%;
+    height: 100px;
 }
 </style>

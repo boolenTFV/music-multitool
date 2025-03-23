@@ -57,12 +57,16 @@
                         </DefaultButton>
                         <DefaultButton
                             title="Clear"
-                            @click="clearRecordSample"
+                            @click="handleClearSample"
                             v-if="isRecordedSampler"
                             square
                         >
                             <ClearIcon :size="24"/>
                         </DefaultButton>
+                        <UploaderInput
+                            @change="handelChangeFile"
+                            ref="uploaderInput"
+                        />
                         <DefaultButton
                             @click="trimSilenceHandler"
                             v-if="!isRecordingSampler && isRecordedSampler"
@@ -100,7 +104,7 @@
                     </div>
 
                 </div>
-            <div :class="$style.piano">
+            <div :class="$style.keyboard">
                 <template v-for="(data, index) in keys" :key="index">
                     <WhiteKey
                         v-if="data.type === 'white'"
@@ -149,7 +153,11 @@
     import { useSampler } from "./PianoModule/useSampler";
     import type { PianoToneKeyData } from "./types";
     import { trimSilence } from "@/utils/trimSilence";
+    import { useAudioContext } from "@/composables/useAudioContext";
+    import UploaderInput from "@/components/UploaderInput.vue";
 
+    const uploaderInput = ref<InstanceType<typeof UploaderInput>>();
+    const audioContext = useAudioContext();
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
     const releaseTime = ref(200);
@@ -200,6 +208,17 @@
             play(data);
         }
     }
+    const handelChangeFile = async (file: File) => {
+        if(file) {
+            const arrayBuffer = await file.arrayBuffer();
+            audioBufferSampler.value = await audioContext.value.decodeAudioData(arrayBuffer);
+        }
+    }
+    const handleClearSample = () => {
+        clearRecordSample();
+        uploaderInput.value?.clear();
+    }
+
     watch(gain, (value) => {
         maxGainSampler.value = value/100;
         maxVolume.value = value/100;
@@ -253,7 +272,7 @@
             max-height: 500px;
         }
     }
-    .piano {
+    .keyboard {
         min-height: 250px;
         user-select: none;
         display: flex;

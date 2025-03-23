@@ -1,14 +1,16 @@
 <template>
+    <teleport to="body">
     <div :class="$style.modal">
         <div :class="$style.modalContent">
             <DefaultButton :class="$style.closeButton" @click="closeModal" square title="Close modal"><CloseIcon /></DefaultButton>
             <h2 :class="$style.modalHeader">
                 <slot name="header" />
             </h2>
-            <div :class="$style.modalBody"><slot name="body" /></div>
+            <div :class="$style.modalBody"><slot/></div>
             <div :class="$style.modalFooter"><slot name="footer" /></div>
         </div>
-    </div>
+        </div>
+    </teleport>
 </template>
 <script setup lang="ts">
 import DefaultButton from './DefaultButton.vue';
@@ -22,6 +24,7 @@ const closeModal = () => {
 </script>
 <style lang="scss" module>
 .modal {
+    z-index: 10000;
     position: fixed;
     top: 0;
     left: 0;
