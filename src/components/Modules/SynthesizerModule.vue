@@ -150,7 +150,7 @@
     import RecordIcon from "@/components/Icons/RecordIcon.vue";
     import RangeInput from "@/components/RangeInput.vue";
     import { useSynthLogic } from "./PianoModule/useSynthLogic";
-    import { useSampler } from "./PianoModule/useSampler";
+    import { useSampler } from "@/composables/useSampler";
     import type { PianoToneKeyData } from "./types";
     import { trimSilence } from "@/utils/trimSilence";
     import { useAudioContext } from "@/composables/useAudioContext";

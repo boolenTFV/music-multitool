@@ -1,5 +1,5 @@
 import { reactive, ref, unref, watch } from "vue";
-import { useOscilator } from "./useOscilator";
+import { useOscilator } from "@/composables/useOscilator";
 import type { PianoToneKeyData, ToneKeyData } from "../types";
 import { generateOctave } from "./useKeys";
 import { useAudioContext } from "@/composables/useAudioContext";

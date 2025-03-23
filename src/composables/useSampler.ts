@@ -1,7 +1,7 @@
 import { useAudioContext } from "@/composables/useAudioContext";
 import { onMounted, ref, watch } from "vue";
-import { useAudioRecorder } from "./useAudioRecoreder";
-import { useAudioPlayer } from "./useAudioPlayer";
+import { useAudioRecorder } from "../../../composables/useAudioRecoreder";
+import { useAudioPlayer } from "../../../composables/useAudioPlayer";
 import { splitAudioBuffersBySilence } from "@/utils/splitAudioBuffersBySilence";
 import { trimSilence } from "@/utils/trimSilence";
 

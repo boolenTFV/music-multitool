@@ -3,6 +3,9 @@
 </template>
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue';
+// import {useAudioPlayer} from "@/composables/useAudioPlayer";
+
+// const { playerAudioBuffer, play } = useAudioPlayer();
 
 const canvas = ref<HTMLCanvasElement>();
 const props = defineProps<{
