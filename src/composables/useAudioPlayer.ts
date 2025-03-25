@@ -21,7 +21,7 @@ export const useAudioPlayer = () => {
         pauseTime.value = Date.now();
     };
 
-    const play = async (audioBuffer: AudioBuffer) => {
+    const play = async (audioBuffer: AudioBuffer, when: number = 0) => {
         source.value = audioContext.value.createBufferSource();
         if (!audioBuffer) return;
         if(!pauseTime.value) {
@@ -31,7 +31,7 @@ export const useAudioPlayer = () => {
         source.value.connect(destination.value);
         const duration = audioBuffer.duration || 0;
         const offset = pauseTime.value ? (pauseTime.value - startTime.value) / 1000 : 0;
-        source.value.start(0, offset % duration);
+        source.value.start(0, when ? when : offset % duration);
         isPlaing.value = true;
     };
 
