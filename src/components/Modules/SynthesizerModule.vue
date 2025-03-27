@@ -123,7 +123,9 @@
                         :class="[$style.pianoKey, $style.whiteKey]"
                         :key="`${data.key}${data.octave}`"
                         :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
-                    />
+                    >
+                        {{ data.key }} {{ data.octave }}
+                    </WhiteKey>
                     <BlackKey
                         v-if="data.type === 'black'"
                         @mousedown="play(data)"
@@ -135,12 +137,14 @@
                         :class="[$style.pianoKey, $style.blackKey]"
                         :key="`${data.key}${data.octave}`"
                         :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
-                    />
+                    >
+                        {{ data.key }} {{ data.octave }}
+                    </BlackKey>
                 </template>
                 </div>
             </div>
             <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
-                <AudioBufferCut :audioBuffer="audioBufferSampler" v-model:buffers="buffers" />
+                <AudioBufferCut :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited" />
             </ModalComponent>
         </BlockContainer>
     </template>
@@ -166,8 +170,9 @@
     import UploaderInput from "@/components/UploaderInput.vue";
     import ModalComponent from "@/components/ModalComponent.vue";
     import AudioBufferCut from "@/components/AudioBufferCut.vue";
+    import { useAudioRecorder } from "@/composables/useAudioRecoreder";
+    import { computed } from "vue";
 
-    const buffers = ref<AudioBuffer[]>([]);
     const uploaderInput = ref<InstanceType<typeof UploaderInput>>();
     const audioContext = useAudioContext();
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
@@ -175,33 +180,58 @@
     const releaseTime = ref(200);
     const gain = ref(80);
     const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
+    
+    const audioBuffersSplited = ref<AudioBuffer[]>([]);
     const {
-        play: playSampler,
-        stop: stopSampler,
         record: recordSample,
         stopRecord: stopRecordSample,
         clearRecord: clearRecordSample,
         isRecording: isRecordingSampler,
         isRecorded: isRecordedSampler,
-        audioBuffer: audioBufferSampler,
+        audioBuffer: audioBufferRecoreded
+    } = useAudioRecorder()
+    const {
+        play: playSampler,
+        stop: stopSampler,
         mode: modeSampler,
         maxGain: maxGainSampler
     } = useSampler();
+
     const showAudioBufferModalVisible = ref(false);
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
     const currentSamplerKey = ref<PianoToneKeyData>();
+
+    const samplerSamples = computed(() => {
+        if(audioBuffersSplited.value.length > 0) {
+            return audioBuffersSplited.value;
+        }
+        if(audioBufferRecoreded.value) {
+            return [audioBufferRecoreded.value];
+        }
+        return [];
+    })
+
+    const getSample = (index: number, samplerSamples: AudioBuffer[]) => {
+        if(samplerSamples.length === 0) return;
+        const sampleIndex = index % samplerSamples.length;
+        return samplerSamples[sampleIndex];
+    }
+
     async function play(data: PianoToneKeyData) {
         if(type.value === 'synthesizer') {
-            playKeySynthesizer(data, attackTime.value);
-        } else {
-            const index = keys.value.indexOf(data);
-            if(currentSamplerKey.value) {
-                stopSampler(releaseTime.value);
-            }
-            currentSamplerKey.value = data;
-            playSampler(index, attackTime.value);
+            return playKeySynthesizer(data, attackTime.value);
         }
+
+        const index = keys.value.indexOf(data);
+        if(currentSamplerKey.value) {
+            stopSampler(releaseTime.value);
+        }
+        currentSamplerKey.value = data;
+        const currentSample = getSample(index, samplerSamples.value); 
+        if(!currentSample) return;
+        playSampler(currentSample, index, attackTime.value);
     }
+
     function stop(data: PianoToneKeyData) {
         if(type.value === 'synthesizer') {
             stopKeySynthesizer(data, releaseTime.value);
@@ -224,7 +254,7 @@
     const handelChangeFile = async (file: File) => {
         if(file) {
             const arrayBuffer = await file.arrayBuffer();
-            audioBufferSampler.value = await audioContext.value.decodeAudioData(arrayBuffer);
+            audioBufferRecoreded.value = await audioContext.value.decodeAudioData(arrayBuffer);
         }
     }
     const handleClearSample = () => {
@@ -253,8 +283,8 @@
     };
 
     const trimSilenceHandler = () => {
-        if(audioBufferSampler.value) {
-            audioBufferSampler.value = trimSilence(audioBufferSampler.value);
+        if(audioBufferRecoreded.value) {
+            audioBufferRecoreded.value = trimSilence(audioBufferRecoreded.value);
         }
     }
 

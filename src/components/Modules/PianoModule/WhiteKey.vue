@@ -1,5 +1,6 @@
 <template>
     <button :class="[$style.whiteKey, active && $style.active]">
+        <span :class="$style.hint"><slot /></span>
     </button>
 </template>
 <script lang="ts" setup>
@@ -16,7 +17,11 @@ defineProps<{
     outline: none;
     border-radius: 0 0 4px 4px;
     min-height: 10px;
-
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-direction: column;
+    padding: 0 0 30px;
     &:hover {
         background-color: #f0f0f0;
     }
@@ -33,5 +38,11 @@ defineProps<{
         background-color: #f0f0f0;
     }
 
+}
+.hint {
+    text-align: center;
+    transform: translateY(100%);
+    font-size: 12px;
+    color: #000;
 }
 </style> 
