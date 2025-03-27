@@ -73,6 +73,12 @@
                         >
                             Trim silence
                         </DefaultButton>
+                        <DefaultButton
+                            @click="showAudioBufferModalVisible = true"
+                            v-if="!isRecordingSampler && isRecordedSampler"
+                        >
+                            Split
+                        </DefaultButton>
                     </div>
                     <div :class="$style.button_container" v-if="type === 'sampler'">
                         <label :class="$style.range_label">
@@ -133,6 +139,9 @@
                 </template>
                 </div>
             </div>
+            <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
+                <AudioBufferCut :audioBuffer="audioBufferSampler" v-model:buffers="buffers" />
+            </ModalComponent>
         </BlockContainer>
     </template>
     <script lang="ts" setup>
@@ -155,7 +164,10 @@
     import { trimSilence } from "@/utils/trimSilence";
     import { useAudioContext } from "@/composables/useAudioContext";
     import UploaderInput from "@/components/UploaderInput.vue";
+    import ModalComponent from "@/components/ModalComponent.vue";
+    import AudioBufferCut from "@/components/AudioBufferCut.vue";
 
+    const buffers = ref<AudioBuffer[]>([]);
     const uploaderInput = ref<InstanceType<typeof UploaderInput>>();
     const audioContext = useAudioContext();
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
@@ -175,6 +187,7 @@
         mode: modeSampler,
         maxGain: maxGainSampler
     } = useSampler();
+    const showAudioBufferModalVisible = ref(false);
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
     const currentSamplerKey = ref<PianoToneKeyData>();
     async function play(data: PianoToneKeyData) {

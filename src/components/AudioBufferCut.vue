@@ -1,11 +1,26 @@
 <template>
    
-    <div class="flex flex-col items-center justify-center">
-        <canvas :width="width" :height="height" ref="canvas" @click="handleClick" />
+    <div>
+        <canvas width="1000" height="100" ref="canvas" @click="handleClick" />
         <HorizontalList gap="10px">
-            <DefaultButton @click="playAudio "><PlayIcon /></DefaultButton>
-            <DefaultButton @click="stopAudio"><StopIcon /></DefaultButton>
-            <slot name="controls" />
+            <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
+            <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
+            <DefaultButton @click="autoCut">Auto Split</DefaultButton>
+        </HorizontalList>
+        <HorizontalList :class="$style.result" gap="10px" v-if="audioBuffers && audioBuffers.length > 0 && audioBuffer">
+            <AudioBufferPrivew
+                v-for="(audioBufferItem, index) in audioBuffers"
+                :key="`${audioBufferItem.duration} + ${audioBufferItem.sampleRate}`"
+                :audioBuffer="audioBufferItem"
+                :width="audioBufferItem.duration * 1000/ audioBuffer?.duration"
+                :height="50"
+            >
+                <template #controls>
+                    <DefaultButton @click="deleteItemByIndex(index)" square title="Delete">
+                        <CloseIcon />
+                    </DefaultButton>
+                </template>
+            </AudioBufferPrivew>
         </HorizontalList>
     </div>
 </template>
@@ -22,23 +37,24 @@ import clearCanvas from './CanvasComponents/clearCanvas';
 import { centerLineDraw } from './CanvasComponents/centerLineDraw';
 import { audioCursorDraw } from './CanvasComponents/audioCursorDraw';
 import { timeToX } from './CanvasComponents/utils';
+import AudioBufferPrivew from './AudioBufferPrivew.vue';
+import { splitAudioBuffersBySilence } from '@/utils/splitAudioBuffersBySilence';
+import CloseIcon from './Icons/CloseIcon.vue';
 
 const { play, stop, isPlaing } = useAudioPlayer();
 
 const canvas = ref<HTMLCanvasElement>();
 const props = defineProps<{
     audioBuffer?: AudioBuffer;
-    width?: number;
-    height?: number;
 }>();
+const startSelection = ref<number>();
+const endSelection = ref<number>();
 const { time, isRunning, start: startStopwatch, stop: stopStopwatch, reset: resetStopwatch, onUpdate: onUpdateStopwatch } = useStopwatch();
-watch(time, () => {
-    if(!isRunning.value || !props.audioBuffer) return;
-    if(time.value > props.audioBuffer.duration) {
-        stopStopwatch();
-    }
-});
+const audioBuffers = defineModel<AudioBuffer[]>({required: true});
 
+const deleteItemByIndex = (index: number) => {
+    audioBuffers.value = audioBuffers.value.filter((_, i) => i !== index);
+}
 onUpdateStopwatch(() => {
     if(!props.audioBuffer) return;
     if(time.value > props.audioBuffer?.duration) {
@@ -86,9 +102,24 @@ const draw = () => {
     audioCursorDraw(ctx, timeToX(ctx, props.audioBuffer, time.value));
 }
 
+const autoCut = () => {
+    if(!props.audioBuffer) return;
+    audioBuffers.value = splitAudioBuffersBySilence(props.audioBuffer);
+}
+watch(time, () => {
+    if(!isRunning.value || !props.audioBuffer) return;
+    if(time.value > props.audioBuffer.duration) {
+        stopStopwatch();
+    }
+});
 onMounted(() => {
     draw();
 });
 
 </script>
-
+<style module>
+.result {
+    margin-top: 10px;
+    overflow: hidden;
+}
+</style>

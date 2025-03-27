@@ -20,17 +20,11 @@
             </HorizontalList>
             <HorizontalList gap="10px">
                 <UploaderInput @change="handleFileChange" ref="fileInput"/>
-                <DefaultButton @click="showAudioBufferModalVisible = true">
-                    show
-                </DefaultButton> 
             </HorizontalList>
             <DefaultButton :disabled="isPlaing || isRecording || !isRecorded" @click="handleTrimSilence">
                 Trim Silence
             </DefaultButton>
         </VerticalList>
-        <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
-            <AudioBufferPrivew width="1000" height="100" :audioBuffer="audioBuffer" :class="$style.audioBufferPrivew" />
-        </ModalComponent>
     </div>
 </template>
 <script lang="ts" setup>
@@ -50,7 +44,7 @@ import { useAudioPlayer } from '@/composables/useAudioPlayer';
 import { useAudioContext } from '@/composables/useAudioContext';
 import ModalComponent from '@/components/ModalComponent.vue';
 import AudioBufferPrivew from '@/components/AudioBufferPrivew.vue';
-
+import AudioBufferCut from '@/components/AudioBufferCut.vue';
 const fileInput = ref<InstanceType<typeof UploaderInput>>();
 const isNotSupporeted = ref(false);
 const audioContext = useAudioContext();
