@@ -53,7 +53,7 @@ export const useSampler = () => {
             console.log(offset);
             pitchRatio.setValueAtTime(offset, audioContext.value.currentTime);
         }
-        gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + 0.05, attackTime/0.025);
+        gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
         gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + attackTime, attackTime/2);
         playRecord(audioBuffer);
         
@@ -61,6 +61,7 @@ export const useSampler = () => {
 
     const stop = async (releaseTimeMs: number = 0.05) => {
         const releaseTime = releaseTimeMs / 1000;
+        gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
         gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTime, releaseTime/2);
         stopPlayRecord(audioContext.value.currentTime + releaseTime);
     }

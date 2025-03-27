@@ -42,13 +42,9 @@ import { trimSilence } from '@/utils/trimSilence';
 import { useAudioRecorder } from '@/composables/useAudioRecoreder';
 import { useAudioPlayer } from '@/composables/useAudioPlayer';
 import { useAudioContext } from '@/composables/useAudioContext';
-import ModalComponent from '@/components/ModalComponent.vue';
-import AudioBufferPrivew from '@/components/AudioBufferPrivew.vue';
-import AudioBufferCut from '@/components/AudioBufferCut.vue';
 const fileInput = ref<InstanceType<typeof UploaderInput>>();
 const isNotSupporeted = ref(false);
 const audioContext = useAudioContext();
-const showAudioBufferModalVisible = ref(false);
 const {
     record,
     stopRecord,

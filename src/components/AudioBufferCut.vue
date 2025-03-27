@@ -62,7 +62,7 @@ const props = defineProps<{
 }>();
 const startSelection = ref<number>();
 const endSelection = ref<number>();
-const { time, isRunning, start: startStopwatch, stop: stopStopwatch, reset: resetStopwatch, onUpdate: onUpdateStopwatch } = useStopwatch();
+const { time, isRunning, start: startStopwatch, stop: stopStopwatch, onUpdate: onUpdateStopwatch } = useStopwatch();
 const audioBuffers = defineModel<AudioBuffer[]>({required: true});
 
 const deleteItemByIndex = (index: number) => {

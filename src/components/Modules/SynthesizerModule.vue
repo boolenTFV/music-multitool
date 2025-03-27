@@ -138,7 +138,7 @@
                         :key="`${data.key}${data.octave}`"
                         :active="
                             activeKeyTones.key1 === data
-                            || activeKeyTones.key2 === dataa
+                            || activeKeyTones.key2 === data
                             || activeKeyTones.key3 === data
                             || currentSamplerKey === data
                         "
@@ -149,7 +149,7 @@
                 </div>
             </div>
             <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
-                <AudioBufferCut :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited">
+                <AudioBufferCut type="sampler" :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited">
                     <template #controls>
                         <DefaultButton
                             @click="trimSilenceHandler"
@@ -158,6 +158,7 @@
                             Trim silence
                         </DefaultButton>
                     </template>
+                    
                 </AudioBufferCut>
             </ModalComponent>
         </BlockContainer>
