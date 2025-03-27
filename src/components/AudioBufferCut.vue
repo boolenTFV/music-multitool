@@ -6,6 +6,7 @@
             <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
             <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
             <DefaultButton @click="autoCut">Auto Split</DefaultButton>
+            <slot name="controls" />
         </HorizontalList>
         <HorizontalList :class="$style.result" gap="10px" v-if="audioBuffers && audioBuffers.length > 0 && audioBuffer">
             <AudioBufferPrivew
@@ -111,6 +112,9 @@ watch(time, () => {
     if(time.value > props.audioBuffer.duration) {
         stopStopwatch();
     }
+});
+watch(() => props.audioBuffer, () => {
+    draw();
 });
 onMounted(() => {
     draw();

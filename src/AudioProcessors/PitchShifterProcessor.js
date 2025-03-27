@@ -12,8 +12,8 @@ class PitchShifterProcessor extends AudioWorkletProcessor {
       {
         name: "pitchRatio",
         defaultValue: 0, // Perfect pitch
-        minValue: -3,
-        maxValue: 3,
+        minValue: -10,
+        maxValue: 10,
         automationRate: "k-rate",
       },
     ];

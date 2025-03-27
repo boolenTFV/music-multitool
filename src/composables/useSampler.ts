@@ -49,7 +49,8 @@ export const useSampler = () => {
         const attackTime = attackTimeMs / 1000;
         if(pitchShifterNode.value) {
             const pitchRatio = pitchShifterNode.value.parameters.get("pitchRatio") as AudioParam;
-            const offset = Math.pow(2, ((12 - tone)/12));
+            const offset = 1 - Math.pow(2, tone/12);
+            console.log(offset);
             pitchRatio.setValueAtTime(offset, audioContext.value.currentTime);
         }
         gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + 0.05, attackTime/0.025);

@@ -68,16 +68,12 @@
                             ref="uploaderInput"
                         />
                         <DefaultButton
-                            @click="trimSilenceHandler"
-                            v-if="!isRecordingSampler && isRecordedSampler"
-                        >
-                            Trim silence
-                        </DefaultButton>
-                        <DefaultButton
                             @click="showAudioBufferModalVisible = true"
                             v-if="!isRecordingSampler && isRecordedSampler"
+                            square
+                            title="Sampler settings"
                         >
-                            Split
+                            <SettingsIcon/>
                         </DefaultButton>
                     </div>
                     <div :class="$style.button_container" v-if="type === 'sampler'">
@@ -86,8 +82,7 @@
                             <select v-model="modeSampler">
                                 <option disabled value="">Select mode</option>
                                 <option value="classic">classic</option>
-                                <option value="continous">continious</option>
-                                <option value="splited">splited</option>
+                                <option value="loop">loop</option>
                             </select>
                             
                         </label>
@@ -124,7 +119,7 @@
                         :key="`${data.key}${data.octave}`"
                         :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
                     >
-                        {{ data.key }} {{ data.octave }}
+                        {{ getSynthesizerKeyHint(data, index) }}
                     </WhiteKey>
                     <BlackKey
                         v-if="data.type === 'black'"
@@ -138,13 +133,22 @@
                         :key="`${data.key}${data.octave}`"
                         :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
                     >
-                        {{ data.key }} {{ data.octave }}
+                        {{ getSynthesizerKeyHint(data, index) }}
                     </BlackKey>
                 </template>
                 </div>
             </div>
             <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
-                <AudioBufferCut :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited" />
+                <AudioBufferCut :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited">
+                    <template #controls>
+                        <DefaultButton
+                            @click="trimSilenceHandler"
+                            v-if="!isRecordingSampler && isRecordedSampler"
+                        >
+                            Trim silence
+                        </DefaultButton>
+                    </template>
+                </AudioBufferCut>
             </ModalComponent>
         </BlockContainer>
     </template>
@@ -172,6 +176,7 @@
     import AudioBufferCut from "@/components/AudioBufferCut.vue";
     import { useAudioRecorder } from "@/composables/useAudioRecoreder";
     import { computed } from "vue";
+import SettingsIcon from "../Icons/SettingsIcon.vue";
 
     const uploaderInput = ref<InstanceType<typeof UploaderInput>>();
     const audioContext = useAudioContext();
@@ -211,6 +216,13 @@
         return [];
     })
 
+    const getSynthesizerKeyHint = (pianoToneKeyData: PianoToneKeyData, index: number) => {
+        if(type.value === 'synthesizer') {
+            return pianoToneKeyData.key + pianoToneKeyData.octave;
+        }
+        return (index % samplerSamples.value.length) + 1;
+    }
+
     const getSample = (index: number, samplerSamples: AudioBuffer[]) => {
         if(samplerSamples.length === 0) return;
         const sampleIndex = index % samplerSamples.length;
@@ -229,7 +241,8 @@
         currentSamplerKey.value = data;
         const currentSample = getSample(index, samplerSamples.value); 
         if(!currentSample) return;
-        playSampler(currentSample, index, attackTime.value);
+        console.log(index);
+        playSampler(currentSample, index - 12, attackTime.value);
     }
 
     function stop(data: PianoToneKeyData) {
