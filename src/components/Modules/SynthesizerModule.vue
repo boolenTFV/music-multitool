@@ -117,7 +117,12 @@
                         @touchend="stop(data)"
                         :class="[$style.pianoKey, $style.whiteKey]"
                         :key="`${data.key}${data.octave}`"
-                        :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
+                        :active="
+                            activeKeyTones.key1 === data
+                            || activeKeyTones.key2 === data
+                            || activeKeyTones.key3 === data
+                            || currentSamplerKey === data
+                        "
                     >
                         {{ getSynthesizerKeyHint(data, index) }}
                     </WhiteKey>
@@ -131,7 +136,12 @@
                         @mouseenter="(event) => mouseEnter(event, data)"
                         :class="[$style.pianoKey, $style.blackKey]"
                         :key="`${data.key}${data.octave}`"
-                        :active="activeKeyTones.key1 === data || activeKeyTones.key2 === data || activeKeyTones.key3 === data"
+                        :active="
+                            activeKeyTones.key1 === data
+                            || activeKeyTones.key2 === dataa
+                            || activeKeyTones.key3 === data
+                            || currentSamplerKey === data
+                        "
                     >
                         {{ getSynthesizerKeyHint(data, index) }}
                     </BlackKey>

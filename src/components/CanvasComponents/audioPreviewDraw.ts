@@ -23,8 +23,8 @@ export const audioPreviewDraw = (ctx: CanvasRenderingContext2D, audioBuffer: Aud
       const h = Math.max(1, (max - min) * amp);
       const y = amp - h/2;
       const w = barWidth - barPadding;
-      ctx.fillStyle = "white";
-      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+      ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
     }
 
 }
