@@ -1,4 +1,4 @@
-import type { ToneKeyData } from "../types";
+import type { ToneKeyData } from "@/components/Modules/types";
 import { ref } from "vue";
 
 export const useOscilator = (audioContext: AudioContext) => {
