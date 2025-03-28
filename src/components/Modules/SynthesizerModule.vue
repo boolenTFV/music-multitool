@@ -137,7 +137,11 @@
                 </template>
                 </div>
             </div>
-            <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
+            <ModalComponent
+                v-if="showAudioBufferModalVisible"
+                fullscreen
+                @closeModal="showAudioBufferModalVisible = false"
+            >
                 <template #header>
                     Sampler settings
                 </template>
@@ -153,7 +157,7 @@
                     </template>
                 </AudioBufferCut>
                 <label :class="$style.settings_item">
-                    <span>{{ modeSampler }}</span>
+                    <span>Synthesizer mode</span>
                     <select v-model="modeSampler">
                         <option disabled value="">Select mode</option>
                         <option value="classic">classic</option>
@@ -254,7 +258,6 @@ import SettingsIcon from "../Icons/SettingsIcon.vue";
         currentSamplerKey.value = data;
         const currentSample = getSample(index, samplerSamples.value); 
         if(!currentSample) return;
-        console.log(index);
         playSampler(currentSample, index - 12, attackTime.value);
     }
 
@@ -421,5 +424,11 @@ import SettingsIcon from "../Icons/SettingsIcon.vue";
         display: flex;
         flex-direction: column;
         gap: 20px;
+    }
+    .settings_item {
+        align-items: start;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
     </style>

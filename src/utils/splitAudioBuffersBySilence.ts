@@ -36,11 +36,8 @@ export function splitAudioBuffersBySilence(audioBuffer: AudioBuffer, silenceThre
         if(newChunkBufferTrimmed.duration > 0.08) {
           audioBuffers.push(newChunkBufferTrimmed)
         }
-      } else {
-        console.log('empty chunk', i);
       }
     }
-    console.log('resul:', audioBuffers.length, chunks.length);
     return audioBuffers;
   }
 

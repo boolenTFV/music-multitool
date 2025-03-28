@@ -77,7 +77,6 @@ const handleFileChange = (file: File) => {
         const arrayBuffer = event.target?.result as ArrayBuffer;
                 // Decode the ArrayBuffer into an AudioBuffer
         audioContext.value.decodeAudioData(arrayBuffer, (innerAudioBuffer: AudioBuffer) => {
-          console.log('AudioBuffer:', innerAudioBuffer);
           audioBuffer.value = innerAudioBuffer;
         });
     }
@@ -108,9 +107,6 @@ watch(source, (newSource) => {
     if(newSource) {
         newSource.loop = true;
     }
-});
-watch(audioBuffer, (newAudioBuffer) => {
-    console.log(newAudioBuffer);
 });
 looperEventTarget.addEventListener(STOP_EVENT, stop);
 looperEventTarget.addEventListener(PLAY_EVENT, () => {

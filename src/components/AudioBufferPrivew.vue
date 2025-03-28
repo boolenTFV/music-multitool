@@ -10,7 +10,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import DefaultButton from '@/components/DefaultButton.vue';
 import PlayIcon from '@/components/Icons/PlayIcon.vue';
 import StopIcon from '@/components/Icons/StopIcon.vue';
@@ -42,7 +42,6 @@ watch(time, () => {
 onUpdateStopwatch(() => {
     if(!props.audioBuffer) return;
     if(time.value > props.audioBuffer?.duration) {
-        console.log("stop");
         stopAudio();
         resetStopwatch();
     }
@@ -88,8 +87,12 @@ const draw = () => {
 
 onMounted(() => {
     draw();
-});
 
+    window.addEventListener('resize', draw); // ctx.translate(0.5, 0.5);
+});
+onUnmounted(() => {
+    window.removeEventListener('resize', draw);
+});
 </script>
 <style lang="scss" module>
 .container {

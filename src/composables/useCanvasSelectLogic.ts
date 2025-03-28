@@ -16,10 +16,8 @@ export const useCanvasSelectLogic = (canvasRef: Ref<HTMLCanvasElement | undefine
         const end = Math.round(audioBuffer.value.sampleRate * range.selectedTimeEnd);
         const audioData = audioBuffer.value.getChannelData(0);
         const newAudioData = audioData.slice(start, end);
-        console.log(newAudioData.length);
         const newAudioBuffer = audioContext.value.createBuffer(1, newAudioData.length, audioBuffer.value.sampleRate);
         newAudioBuffer.copyToChannel(newAudioData, 0);
-        console.log(newAudioBuffer.duration);
         return newAudioBuffer;
     }
     const handleMouseDown = (event: MouseEvent) => {
@@ -37,7 +35,6 @@ export const useCanvasSelectLogic = (canvasRef: Ref<HTMLCanvasElement | undefine
         const timeStep = audioBuffer.value.duration / canvasRef.value.width;
         range.selectedXEnd = x;
         range.selectedTimeEnd = range.selectedXEnd * timeStep;
-        console.log(range.selectedTimeEnd, range.selectedTimeStart);
         selectedAudioBuffer.value = getSelectedAudioBuffer();
     }
     

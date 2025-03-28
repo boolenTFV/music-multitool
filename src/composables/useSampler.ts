@@ -42,15 +42,11 @@ export const useSampler = () => {
         await initAudioWorklet();
     })
 
-    watch(mode, () => {
-        console.log(mode.value);
-    })
     const play = (audioBuffer: AudioBuffer, tone: number = 0, attackTimeMs: number = 0.05) => {
         const attackTime = attackTimeMs / 1000;
         if(pitchShifterNode.value) {
             const pitchRatio = pitchShifterNode.value.parameters.get("pitchRatio") as AudioParam;
             const offset = 1 - Math.pow(2, tone/12);
-            console.log(offset);
             pitchRatio.setValueAtTime(offset, audioContext.value.currentTime);
         }
         gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);

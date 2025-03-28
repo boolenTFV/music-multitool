@@ -1,17 +1,17 @@
 <template>
-   
     <div>
         <div :class="$style.container">
             <canvas
                 :class="$style.canvas"
-                width="1000"
-                height="100"
                 ref="canvas"
                 @mousedown="handelMouseDown"
                 @mousemove="handelMouseMove"
                 @mouseup="handleMouseUp"
+                @touchstart="handelMouseDown"
+                @touchmove="handelMouseMove"
+                @touchend="handleMouseUp"
                 @click="handleClick"
-            />
+            />  
             <HorizontalList gap="10px">
                 <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
                 <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
@@ -25,7 +25,7 @@
                 v-for="(audioBufferItem, index) in audioBuffers"
                 :key="`${audioBufferItem.duration} + ${audioBufferItem.sampleRate}`"
                 :audioBuffer="audioBufferItem"
-                :width="audioBufferItem.duration * 1000/ audioBuffer?.duration"
+                :width="audioBufferItem.duration * canvasWidth / audioBuffer?.duration"
                 :height="50"
             >
                 <template #controls>
@@ -38,7 +38,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import DefaultButton from '@/components/DefaultButton.vue';
 import PlayIcon from '@/components/Icons/PlayIcon.vue';
 import StopIcon from '@/components/Icons/StopIcon.vue';
@@ -66,13 +66,13 @@ const startSelection = ref<number>();
 const endSelection = ref<number>();
 const { time, isRunning, start: startStopwatch, stop: stopStopwatch, onUpdate: onUpdateStopwatch } = useStopwatch();
 const audioBuffers = defineModel<AudioBuffer[]>({required: true});
+const canvasWidth = ref(0);
 
 const deleteItemByIndex = (index: number) => {
     audioBuffers.value = audioBuffers.value.filter((_, i) => i !== index);
 }
 
 onUpdateStopwatch(() => draw());
-
 const playAudio = () => {
     if(isPlaing.value || isRunning.value) return;
     startStopwatch();
@@ -125,6 +125,9 @@ const stopAudio = () => {
 
 const draw = () => {
     if (!canvas.value) return;
+    canvasWidth.value = canvas.value.clientWidth;
+    canvas.value.width = canvas.value.clientWidth;
+    canvas.value.height = canvas.value.clientHeight;
     const ctx = canvas.value?.getContext('2d');
     if (!ctx) return;
     clearCanvas(ctx);
@@ -178,20 +181,22 @@ const handleClick = (e: MouseEvent) => {
     }
 }
 
-const handelMouseDown = (e: MouseEvent) => {
+const handelMouseDown = (e: MouseEvent | TouchEvent) => {
     if(!canvas.value || !props.audioBuffer) return;
     const rect = canvas.value.getBoundingClientRect()
-    const x = e.clientX - rect.left
+    const clientX = e instanceof TouchEvent ? e.touches[0].clientX : e.clientX
+    const x = clientX - rect.left
     startSelection.value = x;
     endSelection.value = 0;
     draw();
 }
-const handelMouseMove = (e: MouseEvent) => {
+const handelMouseMove = (e: MouseEvent | TouchEvent) => {
     if(!canvas.value || !props.audioBuffer) return;
     if(!startSelection.value) return;
-    if(e.buttons !== 1) return;
+    if(e instanceof MouseEvent && e.buttons !== 1) return;
     const rect = canvas.value.getBoundingClientRect()
-    const x = e.clientX - rect.left
+    const clientX = e instanceof TouchEvent ? e.touches[0].clientX : e.clientX
+    const x = clientX - rect.left
     if(Math.abs(x - startSelection.value) > 10) {
         endSelection.value = x;
         draw();
@@ -219,11 +224,13 @@ watch(time, () => {
 watch(() => props.audioBuffer, () => {
     draw();
 });
+
 onMounted(() => {
     draw();
-    const ctx = canvas.value?.getContext('2d');
-    if (!ctx) return;
-        // ctx.translate(0.5, 0.5);
+    window.addEventListener('resize', draw); // ctx.translate(0.5, 0.5);
+});
+onUnmounted(() => {
+    window.removeEventListener('resize', draw);
 });
 
 </script>
@@ -232,14 +239,18 @@ onMounted(() => {
     border-radius: 5px;
     padding: 5px;
     box-shadow: 0 2px 2px 0 rgba(255, 255, 255, 0.5);
+    max-width: 100%;
+    overflow-x: auto;
 }
 .result {
     display: flex;
     flex-direction: row;
     gap: 10px;
     flex-wrap: wrap;
-    max-width: 1000px;
+    max-width: 100%;
+    overflow-x: auto;
     margin-top: 10px;
+    padding-bottom: 2px;
 }
 
 .canvas {
@@ -247,6 +258,8 @@ onMounted(() => {
 	background-size: 400% 400%;
 	animation: gradient 30s ease infinite;
     border-radius: 5px;
+    width: 100%;
+    height: 100px;
 }
 
 @keyframes gradient {

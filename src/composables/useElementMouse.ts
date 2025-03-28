@@ -45,11 +45,7 @@ export const useElementMouse = (element: Ref<HTMLElement | undefined>) => {
                 mouse.mouseButtons.middle = true;
             }
         }
-        if(mouse.mouseButtons.left) {
-            console.log("mouse.mouseButtons.left", mouse.mouseButtons.left);
-        }
         if((Math.abs(mouse.x - x) > 2|| Math.abs(mouse.y - y) > 2) && mouse.mouseButtons.left) {
-            console.log("dragging");
             mouse.dragging = true;
         }
         mouse.x = x;
@@ -83,7 +79,6 @@ export const useElementMouse = (element: Ref<HTMLElement | undefined>) => {
         if(!element.value) return;
         allButtonsToFalse();
         mouse.dragging = false;
-        console.log("mouse.dragging", mouse.dragging);
     }
     
     return {
