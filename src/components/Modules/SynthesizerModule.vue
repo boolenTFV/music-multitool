@@ -76,17 +76,6 @@
                             <SettingsIcon/>
                         </DefaultButton>
                     </div>
-                    <div :class="$style.button_container" v-if="type === 'sampler'">
-                        <label :class="$style.range_label">
-                            <span>{{ modeSampler }}</span>
-                            <select v-model="modeSampler">
-                                <option disabled value="">Select mode</option>
-                                <option value="classic">classic</option>
-                                <option value="loop">loop</option>
-                            </select>
-                            
-                        </label>
-                    </div>
                     <div :class="$style.range_container">
                         <label :class="$style.range_label">
                             <span>Attack</span>
@@ -149,7 +138,11 @@
                 </div>
             </div>
             <ModalComponent v-if="showAudioBufferModalVisible" @closeModal="showAudioBufferModalVisible = false">
-                <AudioBufferCut type="sampler" :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited">
+                <template #header>
+                    Sampler settings
+                </template>
+                <div :class="$style.settings_container">
+                    <AudioBufferCut type="sampler" :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited">
                     <template #controls>
                         <DefaultButton
                             @click="trimSilenceHandler"
@@ -158,8 +151,17 @@
                             Trim silence
                         </DefaultButton>
                     </template>
-                    
                 </AudioBufferCut>
+                <label :class="$style.settings_item">
+                    <span>{{ modeSampler }}</span>
+                    <select v-model="modeSampler">
+                        <option disabled value="">Select mode</option>
+                        <option value="classic">classic</option>
+                        <option value="loop">loop</option>
+                    </select>
+                </label>
+                </div>
+                
             </ModalComponent>
         </BlockContainer>
     </template>
@@ -414,5 +416,10 @@ import SettingsIcon from "../Icons/SettingsIcon.vue";
             padding-bottom: 10px;
             width: 100%;
         }
+    }
+    .settings_container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
     }
     </style>

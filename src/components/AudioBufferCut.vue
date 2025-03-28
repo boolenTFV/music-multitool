@@ -1,24 +1,26 @@
 <template>
    
     <div>
-        <canvas
-            :class="$style.canvas"
-            width="1000"
-            height="100"
-            ref="canvas"
-            @mousedown="handelMouseDown"
-            @mousemove="handelMouseMove"
-            @mouseup="handleMouseUp"
-            @click="handleClick"
-        />
-        <HorizontalList gap="10px">
-            <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
-            <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
-            <DefaultButton @click="slice" square title="Slice">↓</DefaultButton>
-            <DefaultButton @click="autoCut">Auto Split</DefaultButton>
-            <slot name="controls" />
-        </HorizontalList>
-        <HorizontalList :class="$style.result" gap="10px" v-if="audioBuffers && audioBuffers.length > 0 && audioBuffer">
+        <div :class="$style.container">
+            <canvas
+                :class="$style.canvas"
+                width="1000"
+                height="100"
+                ref="canvas"
+                @mousedown="handelMouseDown"
+                @mousemove="handelMouseMove"
+                @mouseup="handleMouseUp"
+                @click="handleClick"
+            />
+            <HorizontalList gap="10px">
+                <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
+                <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
+                <DefaultButton @click="slice" square title="Slice">↓</DefaultButton>
+                <DefaultButton @click="autoCut">Auto Split</DefaultButton>
+                <slot name="controls" />
+            </HorizontalList>
+        </div>
+        <div :class="$style.result" v-if="audioBuffers && audioBuffers.length > 0 && audioBuffer">
             <AudioBufferPrivew
                 v-for="(audioBufferItem, index) in audioBuffers"
                 :key="`${audioBufferItem.duration} + ${audioBufferItem.sampleRate}`"
@@ -32,7 +34,7 @@
                     </DefaultButton>
                 </template>
             </AudioBufferPrivew>
-        </HorizontalList>
+        </div>
     </div>
 </template>
 <script setup lang="ts">
@@ -226,9 +228,18 @@ onMounted(() => {
 
 </script>
 <style module>
+.container {
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: 0 2px 2px 0 rgba(255, 255, 255, 0.5);
+}
 .result {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
+    max-width: 1000px;
     margin-top: 10px;
-    overflow: hidden;
 }
 
 .canvas {

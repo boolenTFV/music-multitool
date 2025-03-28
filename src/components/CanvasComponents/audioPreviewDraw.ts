@@ -1,8 +1,8 @@
 export const audioPreviewDraw = (ctx: CanvasRenderingContext2D, audioBuffer: AudioBuffer) => {
   const width = ctx.canvas.width;
   const height = ctx.canvas.height;
-  const barWidth = 8;
-  const barPadding = 2;
+  const barWidth = 2;
+  const barPadding = 1;
   if (!ctx) return;
   const amp = height / 2;
   ctx.clearRect(0, 0, width, height);

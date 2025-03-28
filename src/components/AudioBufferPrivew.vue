@@ -1,7 +1,7 @@
 <template>
    
-    <div class="flex flex-col items-center justify-center">
-        <canvas :width="width" :height="height" ref="canvas" @click="handleClick" />
+    <div :class="$style.container">
+        <canvas :class="$style.canvas" :width="width" :height="height" ref="canvas" @click="handleClick" />
         <HorizontalList gap="10px">
             <DefaultButton @click="playAudio "><PlayIcon /></DefaultButton>
             <DefaultButton @click="stopAudio"><StopIcon /></DefaultButton>
@@ -91,4 +91,33 @@ onMounted(() => {
 });
 
 </script>
+<style lang="scss" module>
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border-radius: 5px;
+    padding: 5px;
+    box-shadow: 0 2px 2px 0 rgba(255, 255, 255, 0.5);
+}
+.canvas {
+	background: linear-gradient(-45deg, #eea552, #3c9de7, #ab23d5, #ccd523);
+	background-size: 400% 400%;
+	animation: gradient 30s ease infinite;
+    border-radius: 5px;
+}
 
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+</style>
