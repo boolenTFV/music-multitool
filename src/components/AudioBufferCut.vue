@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div :class="$style.container">
+        <div :class="[$style.container, $style.highlightedBlock]" v-if="editedAudioBuffer">
             <canvas
                 :class="$style.canvas"
                 ref="canvas"
@@ -15,25 +15,40 @@
             <HorizontalList gap="10px">
                 <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
                 <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
-                <DefaultButton @click="slice" square title="Slice">↓</DefaultButton>
+                <DefaultButton @click="slice" square title="Slice"><SliceIcon /></DefaultButton>
+                <DefaultButton @click="editedAudioBuffer = undefined" square title="Close">
+                        <CloseIcon />
+                    </DefaultButton>
                 <DefaultButton @click="autoCut">Auto Split</DefaultButton>
                 <slot name="controls" />
             </HorizontalList>
         </div>
-        <div :class="$style.result" v-if="audioBuffers && audioBuffers.length > 0 && audioBuffer">
+        <div :class="$style.result" >
             <AudioBufferPrivew
+                :draggable="true"
                 v-for="(audioBufferItem, index) in audioBuffers"
+                :data-index="index"
                 :key="`${audioBufferItem.duration} + ${audioBufferItem.sampleRate}`"
                 :audioBuffer="audioBufferItem"
-                :width="audioBufferItem.duration * canvasWidth / audioBuffer?.duration"
+                :width="audioBufferItem.duration * 50"
                 :height="50"
             >
                 <template #controls>
+                    <DefaultButton
+                        @click="handleCutButton(audioBufferItem)"
+                        title="Edit"
+                        square
+                    >
+                        <CutIcon />
+                    </DefaultButton>
                     <DefaultButton @click="deleteItemByIndex(index)" square title="Delete">
                         <CloseIcon />
                     </DefaultButton>
                 </template>
             </AudioBufferPrivew>
+            <div :class="$style.highlightedBlock">
+                <UploaderInput @change="handleUpload" />
+            </div>
         </div>
     </div>
 </template>
@@ -55,13 +70,16 @@ import { splitAudioBuffersBySilence } from '@/utils/splitAudioBuffersBySilence';
 import CloseIcon from './Icons/CloseIcon.vue';
 import { selectionDraw } from './CanvasComponents/selectionDraw';
 import { sliceAudioBufferByTime } from '@/utils/sliceAudioBufferByTime';
+import UploaderInput from './UploaderInput.vue';
+import { useAudioContext } from '@/composables/useAudioContext';
+import CutIcon from './Icons/CutIcon.vue';
+import SliceIcon from './Icons/SliceIcon.vue';
 
 const { play, stop, isPlaing, source} = useAudioPlayer();
-
+const editedAudioBuffer = ref<AudioBuffer>();
+const audioContext = useAudioContext();
 const canvas = ref<HTMLCanvasElement>();
-const props = defineProps<{
-    audioBuffer?: AudioBuffer;
-}>();
+
 const startSelection = ref<number>();
 const endSelection = ref<number>();
 const { time, isRunning, start: startStopwatch, stop: stopStopwatch, onUpdate: onUpdateStopwatch } = useStopwatch();
@@ -71,23 +89,26 @@ const canvasWidth = ref(0);
 const deleteItemByIndex = (index: number) => {
     audioBuffers.value = audioBuffers.value.filter((_, i) => i !== index);
 }
-
+const handleCutButton = (audioBuffer: AudioBuffer) => {
+    editedAudioBuffer.value = audioBuffer;
+    setTimeout(() => draw());
+}
 onUpdateStopwatch(() => draw());
 const playAudio = () => {
     if(isPlaing.value || isRunning.value) return;
     startStopwatch();
-    if(!props.audioBuffer) return;
+    if(!editedAudioBuffer.value) return;
     reorderSelection();
     const startTimestamp = Date.now();
 
     if(startSelection.value && endSelection.value) {
         const ctx = canvas.value?.getContext('2d');
         if (!ctx) return;
-        const loopStart = xToTime(ctx, props.audioBuffer, startSelection.value);
+        const loopStart = xToTime(ctx, editedAudioBuffer.value, startSelection.value);
         time.value = loopStart;
-        const newAudioBuffer = sliceAudioBufferByTime(props.audioBuffer, loopStart, xToTime(ctx, props.audioBuffer, endSelection.value));   
+        const newAudioBuffer = sliceAudioBufferByTime(editedAudioBuffer.value, loopStart, xToTime(ctx, editedAudioBuffer.value, endSelection.value));   
 
-        play(newAudioBuffer, time.value - xToTime(ctx, props.audioBuffer, startSelection.value));
+        play(newAudioBuffer, time.value - xToTime(ctx, editedAudioBuffer.value, startSelection.value));
         
         if(source.value) {
             source.value.onended = () => {
@@ -102,13 +123,13 @@ const playAudio = () => {
         }
         
     } else {
-        play(props.audioBuffer, time.value);
+        play(editedAudioBuffer.value, time.value);
         if(source.value) {
             source.value.onended = () => {
                 const endTimestamp = Date.now();
                 stopStopwatch();
                 stop();
-                if(props.audioBuffer && (endTimestamp - startTimestamp)/1000 >= props.audioBuffer.duration) {
+                if(editedAudioBuffer.value && (endTimestamp - startTimestamp)/1000 >= editedAudioBuffer.value.duration) {
                     time.value = 0;
                     draw();
                 }
@@ -122,6 +143,13 @@ const stopAudio = () => {
     stop();
 }
 
+const handleUpload = async (file: File) => {
+    if(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const audioBuffer = await audioContext.value.decodeAudioData(arrayBuffer);
+        audioBuffers.value = [...audioBuffers.value, audioBuffer];
+    }
+}
 
 const draw = () => {
     if (!canvas.value) return;
@@ -133,9 +161,9 @@ const draw = () => {
     clearCanvas(ctx);
     ctx.beginPath();
     centerLineDraw(ctx);
-    if(!props.audioBuffer) return;
-    audioPreviewDraw(ctx, props.audioBuffer);
-    audioCursorDraw(ctx, timeToX(ctx, props.audioBuffer, time.value));
+    if(!editedAudioBuffer.value) return;
+    audioPreviewDraw(ctx, editedAudioBuffer.value);
+    audioCursorDraw(ctx, timeToX(ctx, editedAudioBuffer.value, time.value));
     if(startSelection.value && endSelection.value) {
         selectionDraw(ctx, startSelection.value, endSelection.value);
     }
@@ -151,38 +179,38 @@ const reorderSelection = () => {
 const slice = () => {
     if (!canvas.value) return;
     const ctx = canvas.value?.getContext('2d');
-    if (!ctx || !props.audioBuffer || !startSelection.value || !endSelection.value) return;
+    if (!ctx || !editedAudioBuffer.value || !startSelection.value || !endSelection.value) return;
 
     audioBuffers.value.push(
         sliceAudioBufferByTime(
-            props.audioBuffer,
-            xToTime(ctx, props.audioBuffer, startSelection.value),
-            xToTime(ctx, props.audioBuffer, endSelection.value)
+            editedAudioBuffer.value,
+            xToTime(ctx, editedAudioBuffer.value, startSelection.value),
+            xToTime(ctx, editedAudioBuffer.value, endSelection.value)
         )
     );
 }
 
 const autoCut = () => {
-    if(!props.audioBuffer) return;
-    audioBuffers.value = splitAudioBuffersBySilence(props.audioBuffer);
+    if(!editedAudioBuffer.value) return;
+    audioBuffers.value = splitAudioBuffersBySilence(editedAudioBuffer.value);
 }
 
 const handleClick = (e: MouseEvent) => {
-    if(!canvas.value || !props.audioBuffer) return;
+    if(!canvas.value || !editedAudioBuffer.value) return;
     const rect = canvas.value.getBoundingClientRect()
     const x = e.clientX - rect.left
     const width = canvas.value.width;
-    const timeStep =  props.audioBuffer.duration / width;
+    const timeStep =  editedAudioBuffer.value.duration / width;
     time.value = x * timeStep;
     draw();
     if(isPlaing.value) {
         stop();
-        play(props.audioBuffer, time.value);
+        play(editedAudioBuffer.value, time.value);
     }
 }
 
 const handelMouseDown = (e: MouseEvent | TouchEvent) => {
-    if(!canvas.value || !props.audioBuffer) return;
+    if(!canvas.value || !editedAudioBuffer.value) return;
     const rect = canvas.value.getBoundingClientRect()
     const clientX = e instanceof TouchEvent ? e.touches[0].clientX : e.clientX
     const x = clientX - rect.left
@@ -191,7 +219,7 @@ const handelMouseDown = (e: MouseEvent | TouchEvent) => {
     draw();
 }
 const handelMouseMove = (e: MouseEvent | TouchEvent) => {
-    if(!canvas.value || !props.audioBuffer) return;
+    if(!canvas.value || !editedAudioBuffer.value) return;
     if(!startSelection.value) return;
     if(e instanceof MouseEvent && e.buttons !== 1) return;
     const rect = canvas.value.getBoundingClientRect()
@@ -204,24 +232,24 @@ const handelMouseMove = (e: MouseEvent | TouchEvent) => {
 }
 
 const handleMouseUp = () => {
-    if(!canvas.value || !props.audioBuffer) return;
+    if(!canvas.value || !editedAudioBuffer.value) return;
     if(!startSelection.value || !endSelection.value) return;
     const ctx = canvas.value?.getContext('2d');
     if (!ctx) return;
     reorderSelection();
-    time.value = xToTime(ctx, props.audioBuffer, startSelection.value);
+    time.value = xToTime(ctx, editedAudioBuffer.value, startSelection.value);
     draw();
 }
 
 
 
 watch(time, () => {
-    if(!isRunning.value || !props.audioBuffer) return;
-    if(time.value > props.audioBuffer.duration) {
+    if(!isRunning.value || !editedAudioBuffer.value) return;
+    if(time.value > editedAudioBuffer.value.duration) {
         stopStopwatch();
     }
 });
-watch(() => props.audioBuffer, () => {
+watch(() => editedAudioBuffer.value, () => {
     draw();
 });
 
@@ -235,10 +263,12 @@ onUnmounted(() => {
 
 </script>
 <style module>
-.container {
+.highlightedBlock {
     border-radius: 5px;
     padding: 5px;
     box-shadow: 0 2px 2px 0 rgba(255, 255, 255, 0.5);
+}
+.container {
     max-width: 100%;
     overflow-x: auto;
 }

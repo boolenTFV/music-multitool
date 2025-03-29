@@ -5,40 +5,17 @@
                 <div :class="$style.tool_panel">
                     <div :class="$style.button_container">    
                         <DefaultButton
-                            title="Sine"
-                            :type="oscillatorType === 'sine' ? 'primary' : 'secondary'"
+                            v-for="item in oscillatorTypes"
+                            :key="item"
+                            :title="item"
+                            :type="oscillatorType === item && type === 'synthesizer' ? 'primary' : 'secondary'"
                             square
-                            @click="oscillatorType = 'sine'"
-                            :disabled="type === 'sampler'"
+                            @click="oscillatorType = item, type = 'synthesizer'"
                         >
-                            <SineWaveIcon />
-                        </DefaultButton>
-                        <DefaultButton
-                            title="Square"
-                            :type="oscillatorType === 'square' ? 'primary' : 'secondary'"
-                            square
-                            @click="oscillatorType = 'square'"
-                            :disabled="type === 'sampler'"
-                        >
-                            <SquareWaveIcon />
-                        </DefaultButton>
-                        <DefaultButton
-                            title="Triangle"
-                            :type="oscillatorType === 'triangle' ? 'primary' : 'secondary'"
-                            square
-                            @click="oscillatorType = 'triangle'"
-                            :disabled="type === 'sampler'"
-                        >
-                            <TriangleWaveIcon />
-                        </DefaultButton>
-                        <DefaultButton
-                            title="Sawtooth"
-                            :type="oscillatorType === 'sawtooth' ? 'primary' : 'secondary'"
-                            square
-                            @click="oscillatorType = 'sawtooth'"
-                            :disabled="type === 'sampler'"
-                        >
-                            <SawtoothWaveIcon />
+                            <SineWaveIcon v-if="item === 'sine'" />
+                            <SquareWaveIcon v-if="item === 'square'" />
+                            <TriangleWaveIcon v-if="item === 'triangle'" />
+                            <SawtoothWaveIcon v-if="item === 'sawtooth'" />
                         </DefaultButton>
                         <DefaultButton
                             title="Record" @click="recordSample"
@@ -63,13 +40,18 @@
                         >
                             <ClearIcon :size="24"/>
                         </DefaultButton>
-                        <UploaderInput
-                            @change="handelChangeFile"
-                            ref="uploaderInput"
-                        />
+                        <DefaultButton
+                            title="Sampler"
+                            :type="type === 'sampler' ? 'primary' : 'secondary'"
+                            square
+                            @click="type = 'sampler'"
+                        >
+                            <SamplerIcon/>
+                        </DefaultButton>
+                        
                         <DefaultButton
                             @click="showAudioBufferModalVisible = true"
-                            v-if="!isRecordingSampler && isRecordedSampler"
+                            v-if="type === 'sampler'"
                             square
                             title="Sampler settings"
                         >
@@ -92,7 +74,6 @@
                             <RangeInput v-model="gain" type="number" :min="0" :max="200" :step="5" compact/>
                         </label>
                     </div>
-
                 </div>
             <div :class="$style.keyboard">
                 <template v-for="(data, index) in keys" :key="index">
@@ -146,7 +127,9 @@
                     Sampler settings
                 </template>
                 <div :class="$style.settings_container">
-                    <AudioBufferCut type="sampler" :audioBuffer="audioBufferRecoreded" v-model="audioBuffersSplited">
+                    <AudioBufferCut
+                        v-model="audioBuffersSplited"
+                    >
                     <template #controls>
                         <DefaultButton
                             @click="trimSilenceHandler"
@@ -188,14 +171,15 @@
     import type { PianoToneKeyData } from "./types";
     import { trimSilence } from "@/utils/trimSilence";
     import { useAudioContext } from "@/composables/useAudioContext";
-    import UploaderInput from "@/components/UploaderInput.vue";
     import ModalComponent from "@/components/ModalComponent.vue";
     import AudioBufferCut from "@/components/AudioBufferCut.vue";
     import { useAudioRecorder } from "@/composables/useAudioRecoreder";
     import { computed } from "vue";
-import SettingsIcon from "../Icons/SettingsIcon.vue";
+    import SettingsIcon from "../Icons/SettingsIcon.vue";
+    import SamplerIcon from "../Icons/SamplerIcon.vue";
 
-    const uploaderInput = ref<InstanceType<typeof UploaderInput>>();
+    const oscillatorTypes:("sine" | "square" | "triangle" | "sawtooth")[] = ['sine', 'square', 'triangle', 'sawtooth'];
+
     const audioContext = useAudioContext();
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
