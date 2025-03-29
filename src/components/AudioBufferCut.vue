@@ -24,28 +24,45 @@
             </HorizontalList>
         </div>
         <div :class="$style.result" >
-            <AudioBufferPrivew
-                :draggable="true"
+            <template
                 v-for="(audioBufferItem, index) in audioBuffers"
-                :data-index="index"
                 :key="`${audioBufferItem.duration} + ${audioBufferItem.sampleRate}`"
-                :audioBuffer="audioBufferItem"
-                :width="audioBufferItem.duration * 50"
-                :height="50"
             >
-                <template #controls>
-                    <DefaultButton
-                        @click="handleCutButton(audioBufferItem)"
-                        title="Edit"
-                        square
-                    >
-                        <CutIcon />
-                    </DefaultButton>
-                    <DefaultButton @click="deleteItemByIndex(index)" square title="Delete">
-                        <CloseIcon />
-                    </DefaultButton>
-                </template>
-            </AudioBufferPrivew>
+                <div
+                    :class="[$style.dropArea, dragOverIndex === index && $style.dropAreaActive]"
+                    @dragover.prevent="dragOver(index)"
+                    @drop.prevent="dragDrop(index)"
+                ></div>
+                <AudioBufferPrivew
+                    @drop.prevent="dragDrop(index)"
+                    @dragover.prevent="dragOver(index)"
+                    @dragstart="dragStart(index)"
+                    @dragend="dragEnd"
+                    :draggable="true"
+                    :data-index="index"
+                    :audioBuffer="audioBufferItem"
+                    :width="audioBufferItem.duration * 50"
+                    :height="50"
+                >
+                    <template #controls>
+                        <DefaultButton
+                            @click="handleCutButton(audioBufferItem)"
+                            title="Edit"
+                            square
+                        >
+                            <CutIcon />
+                        </DefaultButton>
+                        <DefaultButton @click="deleteItemByIndex(index)" square title="Delete">
+                            <CloseIcon />
+                        </DefaultButton>
+                    </template>
+                </AudioBufferPrivew>
+            </template>
+            <div
+                :class="[$style.dropArea, dragOverIndex === audioBuffers.length && $style.dropAreaActive]"
+                @dragover.prevent="dragOver(audioBuffers.length)"
+                @drop.prevent="dragDrop(audioBuffers.length)"
+            ></div>
             <div :class="$style.highlightedBlock">
                 <UploaderInput @change="handleUpload" />
             </div>
@@ -85,7 +102,8 @@ const endSelection = ref<number>();
 const { time, isRunning, start: startStopwatch, stop: stopStopwatch, onUpdate: onUpdateStopwatch } = useStopwatch();
 const audioBuffers = defineModel<AudioBuffer[]>({required: true});
 const canvasWidth = ref(0);
-
+const dragItemIndex = ref<number>();
+const dragOverIndex = ref<number>();
 const deleteItemByIndex = (index: number) => {
     audioBuffers.value = audioBuffers.value.filter((_, i) => i !== index);
 }
@@ -94,6 +112,25 @@ const handleCutButton = (audioBuffer: AudioBuffer) => {
     setTimeout(() => draw());
 }
 onUpdateStopwatch(() => draw());
+const dragStart = (index: number) => {
+    dragItemIndex.value = index;
+};
+const dragDrop = (index: number) => {
+    if(dragItemIndex.value === undefined) return;
+    const newAudioBuffers = [...audioBuffers.value];
+    const item = newAudioBuffers[dragItemIndex.value];
+    newAudioBuffers.splice(dragItemIndex.value, 1);
+    newAudioBuffers.splice(index < dragItemIndex.value ? index : index - 1, 0, item);
+    audioBuffers.value = [...newAudioBuffers];
+    dragItemIndex.value = undefined;
+}
+const dragOver = (index: number) => {
+    dragOverIndex.value = index;
+}
+const dragEnd = () => {
+    dragItemIndex.value = undefined;
+    dragOverIndex.value = undefined;
+}
 const playAudio = () => {
     if(isPlaing.value || isRunning.value) return;
     startStopwatch();
@@ -275,12 +312,19 @@ onUnmounted(() => {
 .result {
     display: flex;
     flex-direction: row;
-    gap: 10px;
     flex-wrap: wrap;
     max-width: 100%;
     overflow-x: auto;
     margin-top: 10px;
     padding-bottom: 2px;
+}
+.dropArea {
+    height: 100px;
+    width: 10px;
+}
+.dropAreaActive {
+    background-color: rgba(67, 0, 56, 0.5);
+    width: 20px;
 }
 
 .canvas {

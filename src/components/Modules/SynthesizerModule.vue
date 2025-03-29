@@ -95,6 +95,7 @@
                         "
                     >
                         {{ getSynthesizerKeyHint(data, index) }}
+                        <sup v-if="type === 'sampler'">{{ Math.floor(index/audioBuffersSplited.length) }}</sup>
                     </WhiteKey>
                     <BlackKey
                         v-if="data.type === 'black'"
@@ -113,7 +114,8 @@
                             || currentSamplerKey === data
                         "
                     >
-                        {{ getSynthesizerKeyHint(data, index) }}
+                        
+                        <var>{{ getSynthesizerKeyHint(data, index) }}<sup v-if="type === 'sampler'">{{ Math.floor(index/audioBuffersSplited.length) }}</sup></var>
                     </BlackKey>
                 </template>
                 </div>
@@ -180,7 +182,6 @@
 
     const oscillatorTypes:("sine" | "square" | "triangle" | "sawtooth")[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
-    const audioContext = useAudioContext();
     const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
     const releaseTime = ref(200);
@@ -264,15 +265,8 @@
             play(data);
         }
     }
-    const handelChangeFile = async (file: File) => {
-        if(file) {
-            const arrayBuffer = await file.arrayBuffer();
-            audioBufferRecoreded.value = await audioContext.value.decodeAudioData(arrayBuffer);
-        }
-    }
     const handleClearSample = () => {
         clearRecordSample();
-        uploaderInput.value?.clear();
     }
 
     watch(gain, (value) => {
