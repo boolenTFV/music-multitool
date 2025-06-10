@@ -94,8 +94,8 @@
                             || currentSamplerKey === data
                         "
                     >
-                        {{ getSynthesizerKeyHint(data, index) }}
-                        <sup v-if="type === 'sampler'">{{ Math.floor(index/audioBuffersSplited.length) }}</sup>
+                        {{ getSynthesizerKeyHint(data, index).value }}
+                        <sup v-if="getSynthesizerKeyHint(data, index).sup">{{ getSynthesizerKeyHint(data, index).sup }}</sup>
                     </WhiteKey>
                     <BlackKey
                         v-if="data.type === 'black'"
@@ -115,7 +115,8 @@
                         "
                     >
                         
-                        <var>{{ getSynthesizerKeyHint(data, index) }}<sup v-if="type === 'sampler'">{{ Math.floor(index/audioBuffersSplited.length) }}</sup></var>
+                        {{ getSynthesizerKeyHint(data, index).value }}
+                        <sup v-if="getSynthesizerKeyHint(data, index).sup">{{ getSynthesizerKeyHint(data, index).sup }}</sup>
                     </BlackKey>
                 </template>
                 </div>
@@ -172,13 +173,13 @@
     import { useSampler } from "@/composables/useSampler";
     import type { PianoToneKeyData } from "./types";
     import { trimSilence } from "@/utils/trimSilence";
-    import { useAudioContext } from "@/composables/useAudioContext";
     import ModalComponent from "@/components/ModalComponent.vue";
     import AudioBufferCut from "@/components/AudioBufferCut.vue";
     import { useAudioRecorder } from "@/composables/useAudioRecoreder";
     import { computed } from "vue";
     import SettingsIcon from "../Icons/SettingsIcon.vue";
     import SamplerIcon from "../Icons/SamplerIcon.vue";
+import { exhaustiveMatchGuard } from "@/utils/types";
 
     const oscillatorTypes:("sine" | "square" | "triangle" | "sawtooth")[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
@@ -219,10 +220,22 @@
     })
 
     const getSynthesizerKeyHint = (pianoToneKeyData: PianoToneKeyData, index: number) => {
-        if(type.value === 'synthesizer') {
-            return pianoToneKeyData.key + pianoToneKeyData.octave;
+        switch(type.value) {
+            case "synthesizer": return {
+                value: pianoToneKeyData.key + pianoToneKeyData.octave
+            };
+            case "sampler": {
+                if(samplerSamples.value.length === 0) {
+                    console.log('return');
+                    return {}
+                }
+                return {
+                    value: index % samplerSamples.value.length + 1,
+                    sup: Math.floor(index / audioBuffersSplited.value.length)
+                };
+            }
+            default: throw exhaustiveMatchGuard(type.value);
         }
-        return (index % samplerSamples.value.length) + 1;
     }
 
     const getSample = (index: number, samplerSamples: AudioBuffer[]) => {
@@ -232,28 +245,35 @@
     }
 
     async function play(data: PianoToneKeyData) {
-        if(type.value === 'synthesizer') {
-            return playKeySynthesizer(data, attackTime.value);
+        switch(type.value) {
+            case "synthesizer":
+                return playKeySynthesizer(data, attackTime.value);
+            case "sampler": {
+                const index = keys.value.indexOf(data);
+                if(currentSamplerKey.value) {
+                    stopSampler(releaseTime.value);
+                }
+                currentSamplerKey.value = data;
+                const currentSample = getSample(index, samplerSamples.value); 
+                if(!currentSample) return;
+                playSampler(currentSample, index - 12, attackTime.value);
+                return;
+            }
+            default: throw exhaustiveMatchGuard(type.value);
         }
-
-        const index = keys.value.indexOf(data);
-        if(currentSamplerKey.value) {
-            stopSampler(releaseTime.value);
-        }
-        currentSamplerKey.value = data;
-        const currentSample = getSample(index, samplerSamples.value); 
-        if(!currentSample) return;
-        playSampler(currentSample, index - 12, attackTime.value);
     }
 
     function stop(data: PianoToneKeyData) {
-        if(type.value === 'synthesizer') {
-            stopKeySynthesizer(data, releaseTime.value);
-        } else {
-            if(currentSamplerKey.value === data) {
-                stopSampler(releaseTime.value);
-                currentSamplerKey.value = undefined;
-            }
+        switch(type.value) {
+            case "synthesizer": stopKeySynthesizer(data, releaseTime.value);
+                break;
+            case "sampler": {
+                if(currentSamplerKey.value === data) {
+                    stopSampler(releaseTime.value);
+                    currentSamplerKey.value = undefined;
+                }
+            } break;
+            default: throw exhaustiveMatchGuard(type.value)
         }
     }
 
