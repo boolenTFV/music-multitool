@@ -1,3 +1,4 @@
+![image info](./readme/image.png)
 # Music Multitool
 
 A web-based music production tool featuring:
@@ -5,6 +6,8 @@ A web-based music production tool featuring:
 - Built-in metronome for precise timing
 - Chord sequencer for harmonic progression
 - Piano/synth module for melody and composition
+
+It's completly free. [You can try it here.](https://music-multitool.su/)
 
 ## Recommended IDE Setup
 
