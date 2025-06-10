@@ -22,8 +22,6 @@ export function trimSilence(audioBuffer: AudioBuffer, silenceThreshold = 0.02) {
   
     // Calculate the duration of the trimmed audio
     const trimmedLength = endIndex - startIndex + 1;
-    const trimmedDuration = trimmedLength / sampleRate;
-    console.log(`Trimmed duration: ${trimmedDuration} seconds`);
     // Create a new AudioBuffer for the trimmed audio
     const trimmedBuffer = new AudioContext().createBuffer(
       audioBuffer.numberOfChannels,

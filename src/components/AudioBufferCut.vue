@@ -63,8 +63,12 @@
                 @dragover.prevent="dragOver(audioBuffers.length)"
                 @drop.prevent="dragDrop(audioBuffers.length)"
             ></div>
-            <div :class="$style.highlightedBlock">
+            <div :class="[$style.highlightedBlock, $style.empty]">
                 <UploaderInput @change="handleUpload" />
+                <DefaultButton>
+                    <RecordIcon v-if="!isRecording && !isRecorded" @click="record"/>
+                    <StopIcon v-else-if="isRecording" @click="stopRecord"/>
+                </DefaultButton>
             </div>
         </div>
     </div>
@@ -91,8 +95,18 @@ import UploaderInput from './UploaderInput.vue';
 import { useAudioContext } from '@/composables/useAudioContext';
 import CutIcon from './Icons/CutIcon.vue';
 import SliceIcon from './Icons/SliceIcon.vue';
+import { useAudioRecorder } from '@/composables/useAudioRecoreder';
+import RecordIcon from './Icons/RecordIcon.vue';
 
 const { play, stop, isPlaing, source} = useAudioPlayer();
+const {
+    record,
+    stopRecord,
+    clearRecord,
+    audioBuffer: recorderAudioBuffer,
+    isRecorded,
+    isRecording
+} =  useAudioRecorder();
 const editedAudioBuffer = ref<AudioBuffer>();
 const audioContext = useAudioContext();
 const canvas = ref<HTMLCanvasElement>();
@@ -188,6 +202,8 @@ const handleUpload = async (file: File) => {
     }
 }
 
+
+
 const draw = () => {
     if (!canvas.value) return;
     canvasWidth.value = canvas.value.clientWidth;
@@ -278,14 +294,18 @@ const handleMouseUp = () => {
     draw();
 }
 
-
-
 watch(time, () => {
     if(!isRunning.value || !editedAudioBuffer.value) return;
     if(time.value > editedAudioBuffer.value.duration) {
         stopStopwatch();
     }
 });
+watch(recorderAudioBuffer, () => {
+    if(recorderAudioBuffer.value) {
+        audioBuffers.value = [...audioBuffers.value, recorderAudioBuffer.value];
+        clearRecord();
+    }
+})
 watch(() => editedAudioBuffer.value, () => {
     draw();
 });
@@ -334,6 +354,12 @@ onUnmounted(() => {
     border-radius: 5px;
     width: 100%;
     height: 100px;
+}
+
+.empty {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 @keyframes gradient {

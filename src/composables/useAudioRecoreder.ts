@@ -41,7 +41,7 @@ export const useAudioRecorder = () => {
 
     const stopRecord = async () => {
         if (!mediaRecorder.value) return;
-        mediaRecorder.value.stop();
+        await mediaRecorder.value.stop();
         isRecording.value = false;
     };
 

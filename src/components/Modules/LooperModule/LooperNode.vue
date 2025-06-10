@@ -70,12 +70,8 @@ const handleFileChange = (file: File) => {
     if(!file) return;
     
     const reader = new FileReader();
-    reader.onprogress = (event) => {    
-        console.log(event.target?.result);
-    }
     reader.onload = (event) => {
         const arrayBuffer = event.target?.result as ArrayBuffer;
-                // Decode the ArrayBuffer into an AudioBuffer
         audioContext.value.decodeAudioData(arrayBuffer, (innerAudioBuffer: AudioBuffer) => {
           audioBuffer.value = innerAudioBuffer;
         });

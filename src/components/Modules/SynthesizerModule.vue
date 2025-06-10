@@ -18,29 +18,6 @@
                             <SawtoothWaveIcon v-if="item === 'sawtooth'" />
                         </DefaultButton>
                         <DefaultButton
-                            title="Record" @click="recordSample"
-                            v-if="!isRecordedSampler && !isRecordingSampler"
-                            square
-                        >
-                            <RecordIcon :size="24"/>
-                        </DefaultButton>
-                        <DefaultButton
-                            title="Stop"
-                            @click="stopRecordSample"
-                            v-if="isRecordingSampler"
-                            square
-                        >
-                            <StopIcon :size="24"/>
-                        </DefaultButton>
-                        <DefaultButton
-                            title="Clear"
-                            @click="handleClearSample"
-                            v-if="isRecordedSampler"
-                            square
-                        >
-                            <ClearIcon :size="24"/>
-                        </DefaultButton>
-                        <DefaultButton
                             title="Sampler"
                             :type="type === 'sampler' ? 'primary' : 'secondary'"
                             square
@@ -133,14 +110,6 @@
                     <AudioBufferCut
                         v-model="audioBuffersSplited"
                     >
-                    <template #controls>
-                        <DefaultButton
-                            @click="trimSilenceHandler"
-                            v-if="!isRecordingSampler && isRecordedSampler"
-                        >
-                            Trim silence
-                        </DefaultButton>
-                    </template>
                 </AudioBufferCut>
                 <label :class="$style.settings_item">
                     <span>Synthesizer mode</span>
@@ -165,14 +134,10 @@
     import SquareWaveIcon from "@/components/Icons/SquareWaveIcon.vue";
     import TriangleWaveIcon from "@/components/Icons/TriangleWaveIcon.vue";
     import SawtoothWaveIcon from "@/components/Icons/SawtoothWaveIcon.vue";
-    import StopIcon from "@/components/Icons/StopIcon.vue";
-    import ClearIcon from "@/components/Icons/ClearIcon.vue";
-    import RecordIcon from "@/components/Icons/RecordIcon.vue";
     import RangeInput from "@/components/RangeInput.vue";
     import { useSynthLogic } from "./PianoModule/useSynthLogic";
     import { useSampler } from "@/composables/useSampler";
     import type { PianoToneKeyData } from "./types";
-    import { trimSilence } from "@/utils/trimSilence";
     import ModalComponent from "@/components/ModalComponent.vue";
     import AudioBufferCut from "@/components/AudioBufferCut.vue";
     import { useAudioRecorder } from "@/composables/useAudioRecoreder";
@@ -191,10 +156,6 @@ import { exhaustiveMatchGuard } from "@/utils/types";
     
     const audioBuffersSplited = ref<AudioBuffer[]>([]);
     const {
-        record: recordSample,
-        stopRecord: stopRecordSample,
-        clearRecord: clearRecordSample,
-        isRecording: isRecordingSampler,
         isRecorded: isRecordedSampler,
         audioBuffer: audioBufferRecoreded
     } = useAudioRecorder()
@@ -226,7 +187,6 @@ import { exhaustiveMatchGuard } from "@/utils/types";
             };
             case "sampler": {
                 if(samplerSamples.value.length === 0) {
-                    console.log('return');
                     return {}
                 }
                 return {
@@ -285,14 +245,11 @@ import { exhaustiveMatchGuard } from "@/utils/types";
             play(data);
         }
     }
-    const handleClearSample = () => {
-        clearRecordSample();
-    }
-
     watch(gain, (value) => {
         maxGainSampler.value = value/100;
         maxVolume.value = value/100;
     }, {immediate: true});
+
     const onKeydown = (e: KeyboardEvent) => {
         if (e.repeat) { return }
         const octaveShift = 12;
@@ -301,6 +258,7 @@ import { exhaustiveMatchGuard } from "@/utils/types";
         if(index === -1) return;
         play(keys.value[index + octaveShift]);
     };
+
     const onKeyup = (e: KeyboardEvent) => {
         const octaveShift = 12;
         if(!keyboardKeyCodes.includes(e.code) ) return
@@ -308,13 +266,6 @@ import { exhaustiveMatchGuard } from "@/utils/types";
         if(index === -1) return;
         stop(keys.value[index + octaveShift]);
     };
-
-    const trimSilenceHandler = () => {
-        if(audioBufferRecoreded.value) {
-            audioBufferRecoreded.value = trimSilence(audioBufferRecoreded.value);
-        }
-    }
-
     window.addEventListener('keydown', onKeydown);
     window.addEventListener('keyup', onKeyup);
     onUnmounted(() => {
@@ -328,6 +279,7 @@ import { exhaustiveMatchGuard } from "@/utils/types";
             type.value = 'synthesizer';
         }
     });
+
     </script>
     <style module>
     .block_container {
