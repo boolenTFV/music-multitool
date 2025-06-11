@@ -3,7 +3,8 @@
         <template #heading>
             Tunner
         </template>
-        <div :class="$style.container">
+        <div :class="$style.container" ref="container">
+                <canvas :class="$style.canvas" :width="containerRect.width" :height="containerRect.height" ref="canvas" />
                 <div v-if="tonicNote && tonicNote.note" :class="$style.noteContainer">
                     <div :class="$style.note" >
                         {{ tonicNote.note }}{{ tonicNote.octave }}
@@ -26,15 +27,20 @@
     </BlockContainer>
 </template>
 <script setup lang="ts">
+import { coordinatesInvertY } from '@/utils/coordinatesInvertY';
 import BlockContainer from '../BlockContainer.vue';
+import clearCanvas from '../CanvasComponents/clearCanvas';
 import DefaultButton from '../DefaultButton.vue';
 import { onUnmounted, ref, useCssModule } from 'vue';
+import { useElementRect } from '@/composables/useElementRect';
 
 const style = useCssModule();
 const dataArray = ref<Uint8Array>();
 const analyser = ref<AnalyserNode>();
 const tonicNote = ref<{note: string, octave: number, cents: number}>();
-
+const canvas = ref<HTMLCanvasElement>();
+const container = ref<Element>();
+const containerRect = useElementRect(container);
 const centsClass = (cents: number) => {
     if(Math.abs(cents) < 10) return style.perfect;
     if(Math.abs(cents) < 20) return style.close;
@@ -87,13 +93,63 @@ async function captureAudio() {
     source.connect(analyser.value);
 
     setInterval(() => {
+        draw();
         const tonicFrequency = getTonicFrequency();
         if(!tonicFrequency) return;
         const note = frequencyToNote(tonicFrequency);
         if(note !== null) {
             tonicNote.value = note;
         }
-    }, 300);
+    }, 20);
+}
+const draw = () => {
+    if (!canvas.value) return;
+    if(!dataArray.value || !tonicNote.value) return;
+    const ctx = canvas.value?.getContext('2d');
+    if (!ctx) return;
+    const width = ctx.canvas.width;
+    const height = ctx.canvas.height;
+
+    clearCanvas(ctx);
+    ctx.beginPath();
+    ctx.moveTo(-1,height);
+    const step = width / dataArray.value.length;
+    const max = Math.max(...dataArray.value);
+    dataArray.value.forEach((item, index) => {
+        // each 100th
+        if(index % 70 === 0) {
+            const y = height/max * item;
+            const x = step * index;
+            if(y > 2) {
+                ctx.lineTo(x-2, coordinatesInvertY(y - 2, height));
+            }
+            ctx.lineTo(x, coordinatesInvertY(y, height));
+            if(y > 2) {
+                ctx.lineTo(x + 2, coordinatesInvertY(y - 2, height));
+            }
+        }
+    })
+    if(!tonicNote.value.note) {
+        ctx.strokeStyle = "#55555550";
+    } else if(tonicNote.value.cents < 0) {
+        ctx.strokeStyle = "#ff000050";
+    } else {
+        ctx.strokeStyle = "#00ff0050";
+    }
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    ctx.strokeStyle = "white"
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.lineTo(width, height);
+    if(!tonicNote.value.note) {
+        ctx.fillStyle = "#11111110";
+    } else if(tonicNote.value.cents < 0) {
+        ctx.fillStyle = "#ff000010";
+    } else {
+        ctx.fillStyle = "#00ff0010";
+    }
+    ctx.fill()
 }
 
 onUnmounted(() => {
@@ -112,6 +168,7 @@ onUnmounted(() => {
     justify-content: center;
     gap: 20px;
     height: 100%;
+    position: relative;
 }
 .noteContainer {
     display: flex;
@@ -142,5 +199,8 @@ onUnmounted(() => {
 .perfect {
     color: var(--color-success);
 }
-
+.canvas {
+    position: absolute;
+    inset: 0;
+}
 </style>
