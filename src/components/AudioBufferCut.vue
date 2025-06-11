@@ -15,7 +15,7 @@
             <HorizontalList gap="10px">
                 <DefaultButton @click="playAudio" square title="Play"><PlayIcon /></DefaultButton>
                 <DefaultButton @click="stopAudio" square title="Stop"><StopIcon /></DefaultButton>
-                <DefaultButton @click="slice" square title="Slice"><SliceIcon /></DefaultButton>
+                <DefaultButton @click="slice" square title="Slice"><CutIcon /></DefaultButton>
                 <DefaultButton @click="editedAudioBuffer = undefined" square title="Close">
                         <CloseIcon />
                     </DefaultButton>
@@ -50,10 +50,10 @@
                             title="Edit"
                             square
                         >
-                            <CutIcon />
+                            <EditIcon />
                         </DefaultButton>
                         <DefaultButton @click="deleteItemByIndex(index)" square title="Delete">
-                            <CloseIcon />
+                            <DeleteIcon />
                         </DefaultButton>
                     </template>
                 </AudioBufferPrivew>
@@ -93,10 +93,11 @@ import { selectionDraw } from './CanvasComponents/selectionDraw';
 import { sliceAudioBufferByTime } from '@/utils/sliceAudioBufferByTime';
 import UploaderInput from './UploaderInput.vue';
 import { useAudioContext } from '@/composables/useAudioContext';
-import CutIcon from './Icons/CutIcon.vue';
-import SliceIcon from './Icons/SliceIcon.vue';
 import { useAudioRecorder } from '@/composables/useAudioRecoreder';
 import RecordIcon from './Icons/RecordIcon.vue';
+import EditIcon from './Icons/EditIcon.vue';
+import CutIcon from './Icons/CutIcon.vue';
+import DeleteIcon from './Icons/DeleteIcon.vue';
 
 const { play, stop, isPlaing, source} = useAudioPlayer();
 const {

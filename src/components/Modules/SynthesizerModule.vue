@@ -107,10 +107,12 @@
                     Sampler settings
                 </template>
                 <div :class="$style.settings_container">
+                    <h2>Samples</h2>
                     <AudioBufferCut
                         v-model="audioBuffersSplited"
                     >
                 </AudioBufferCut>
+                <h2>Parameters</h2>
                 <label :class="$style.settings_item">
                     <span>Synthesizer mode</span>
                     <select v-model="modeSampler">
