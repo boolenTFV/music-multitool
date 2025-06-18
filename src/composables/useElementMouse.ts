@@ -1,11 +1,6 @@
 import { reactive } from "vue"
 
 import type { Ref } from "vue"
-const buttonsMap: Record<number, string> = {
-    0: "left",
-    1: "middle",
-    2: "right"
-}
 export const useElementMouse = (element: Ref<HTMLElement | undefined>) => {
     const mouse = reactive({
         x: 0,
@@ -75,7 +70,7 @@ export const useElementMouse = (element: Ref<HTMLElement | undefined>) => {
             }
         }
     }
-    const onmouseup = (e: MouseEvent) => {
+    const onmouseup = () => {
         if(!element.value) return;
         allButtonsToFalse();
         mouse.dragging = false;
