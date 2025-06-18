@@ -15,7 +15,11 @@ export const useChords = () => {
             name: buildChordName(rootNote.key),
             tones: [
                 rootNote,
-                ...notesSchema.map(offset => keys.value ? keys.value[firstOctaveIndex + index + offset] : defaultKey)
+                ...notesSchema.map(offset => {
+                    const targetIndex = firstOctaveIndex + index + offset;
+                    const safeTargetIndex = keys.value.length < targetIndex ? targetIndex : keys.value.length - 1;
+                    return keys.value ? keys.value[safeTargetIndex] : defaultKey
+                })
             ]
         }));
     }
