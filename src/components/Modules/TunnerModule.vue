@@ -41,6 +41,7 @@ const tonicNote = ref<{note: string, octave: number, cents: number}>();
 const canvas = ref<HTMLCanvasElement>();
 const container = ref<Element>();
 const containerRect = useElementRect(container);
+let intervalId: ReturnType<typeof setInterval> = 0;
 const centsClass = (cents: number) => {
     if(Math.abs(cents) < 10) return style.perfect;
     if(Math.abs(cents) < 20) return style.close;
@@ -92,7 +93,7 @@ async function captureAudio() {
     const source = audioContext.value.createMediaStreamSource(stream);
     source.connect(analyser.value);
 
-    setInterval(() => {
+    intervalId = setInterval(() => {
         draw();
         const tonicFrequency = getTonicFrequency();
         if(!tonicFrequency) return;
@@ -114,18 +115,18 @@ const draw = () => {
     ctx.beginPath();
     ctx.moveTo(-1,height);
     const step = width / dataArray.value.length;
-    const max = Math.max(...dataArray.value);
+    const max = Math.max(...dataArray.value) || 1;
     dataArray.value.forEach((item, index) => {
-        // each 100th
-        if(index % 70 === 0) {
+        // each 20th
+        if(index % 20 === 0) {
             const y = height/max * item;
             const x = step * index;
             if(y > 2) {
-                ctx.lineTo(x-2, coordinatesInvertY(y - 2, height));
+                ctx.lineTo(x - 0.5, coordinatesInvertY(y - 2, height));
             }
             ctx.lineTo(x, coordinatesInvertY(y, height));
             if(y > 2) {
-                ctx.lineTo(x + 2, coordinatesInvertY(y - 2, height));
+                ctx.lineTo(x + 0.5, coordinatesInvertY(y - 2, height));
             }
         }
     })
@@ -155,6 +156,9 @@ const draw = () => {
 onUnmounted(() => {
     if(audioContext.value) {
         audioContext.value.close();
+    }
+    if(intervalId) {
+        clearInterval(intervalId);
     }
 })
 

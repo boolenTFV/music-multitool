@@ -1,0 +1,13 @@
+{
+    "threshold": 2,
+    "reporters": ["console"],
+    "ignore": [
+      "**/.nuxt/**",
+      "**/.output/**",
+      "**/node_modules/**",
+      "**/Icons/**",
+      "**/api_gen/**"
+    ],
+    "gitignore": true
+  }
+  
