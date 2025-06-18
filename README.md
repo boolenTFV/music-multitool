@@ -25,6 +25,9 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 
 ```sh
 npm install
+
+# setup pre-commit hook for git
+npm run prepare
 ```
 
 ### Compile and Hot-Reload for Development

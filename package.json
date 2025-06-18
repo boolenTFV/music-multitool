@@ -12,6 +12,7 @@
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
     "lint:jscpd": "npx jscpd --ignore-pattern \"import.*from.*\\n\"",
+    "prepare": "git config core.hooksPath .git-hooks || echo 'Not in a git repo'",
     "serve": "node server/index.cjs"
   },
   "dependencies": {
