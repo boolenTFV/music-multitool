@@ -1,5 +1,6 @@
 import { reactive, type Ref, ref} from "vue";
 import { useAudioContext } from "./useAudioContext";
+import { getElementClickCoordinates } from "@/utils/getElementClickCoordinates";
 
 export const useCanvasSelectLogic = (canvasRef: Ref<HTMLCanvasElement | undefined, HTMLCanvasElement | undefined>, audioBuffer?: Ref<AudioBuffer | undefined>) => {
     const audioContext = useAudioContext();
@@ -22,16 +23,14 @@ export const useCanvasSelectLogic = (canvasRef: Ref<HTMLCanvasElement | undefine
     }
     const handleMouseDown = (event: MouseEvent) => {
         if (!canvasRef.value || !audioBuffer?.value) return;
-        const rect = canvasRef.value.getBoundingClientRect();
-        const x = event.clientX - rect.left;
+        const {x} = getElementClickCoordinates(event, canvasRef.value);
         const timeStep = audioBuffer.value.duration / canvasRef.value.width;
         range.selectedXStart = x;
         range.selectedTimeStart = range.selectedXStart * timeStep;
     }
     const handleMouseUp = (event: MouseEvent) => {
         if (!canvasRef.value || !audioBuffer?.value) return;
-        const rect = canvasRef.value.getBoundingClientRect();
-        const x = event.clientX - rect.left;
+        const {x} = getElementClickCoordinates(event, canvasRef.value);
         const timeStep = audioBuffer.value.duration / canvasRef.value.width;
         range.selectedXEnd = x;
         range.selectedTimeEnd = range.selectedXEnd * timeStep;
