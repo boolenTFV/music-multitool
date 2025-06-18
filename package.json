@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint . --fix",
     "format": "prettier --write src/",
+    "lint:jscpd": "npx jscpd",
     "serve": "node server/index.cjs"
   },
   "dependencies": {
