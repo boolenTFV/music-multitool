@@ -99,7 +99,7 @@ import EditIcon from './Icons/EditIcon.vue';
 import CutIcon from './Icons/CutIcon.vue';
 import DeleteIcon from './Icons/DeleteIcon.vue';
 
-const { play, stop, isPlaing, source} = useAudioPlayer();
+const { play, stop, isPlaying, source} = useAudioPlayer();
 const {
     record,
     stopRecord,
@@ -147,7 +147,7 @@ const dragEnd = () => {
     dragOverIndex.value = undefined;
 }
 const playAudio = () => {
-    if(isPlaing.value || isRunning.value) return;
+    if(isPlaying.value || isRunning.value) return;
     startStopwatch();
     if(!editedAudioBuffer.value) return;
     reorderSelection();
@@ -257,7 +257,7 @@ const handleClick = (e: MouseEvent) => {
     const timeStep =  editedAudioBuffer.value.duration / width;
     time.value = x * timeStep;
     draw();
-    if(isPlaing.value) {
+    if(isPlaying.value) {
         stop();
         play(editedAudioBuffer.value, time.value);
     }

@@ -23,7 +23,7 @@ import { centerLineDraw } from './CanvasComponents/centerLineDraw';
 import { audioCursorDraw } from './CanvasComponents/audioCursorDraw';
 import { timeToX } from './CanvasComponents/utils';
 
-const { play, stop, isPlaing } = useAudioPlayer();
+const { play, stop, isPlaying } = useAudioPlayer();
 
 const canvas = ref<HTMLCanvasElement>();
 const props = defineProps<{
@@ -67,7 +67,7 @@ const handleClick = (e: MouseEvent) => {
     const timeStep =  props.audioBuffer.duration / width;
     time.value = x * timeStep;
     draw();
-    if(isPlaing.value) {
+    if(isPlaying.value) {
         stop();
         play(props.audioBuffer, time.value);
     }

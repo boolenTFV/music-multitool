@@ -3,25 +3,25 @@
         <div v-if="isNotSupporeted">Is not supported</div>
         <VerticalList :class="$style.controls" justify="center" align="center" gap="10px">
             <HorizontalList  gap="10px">
-                <DefaultButton :disabled="isRecorded || isPlaing" @click="record" square title="Record">
+                <DefaultButton :disabled="isRecorded || isPlaying" @click="record" square title="Record">
                     <RecordIcon :size="24"/>
                 </DefaultButton>
-                <DefaultButton :disabled="!isPlaing && !isRecording" @click="stop" square title="Stop">
+                <DefaultButton :disabled="!isPlaying && !isRecording" @click="stop" square title="Stop">
                     <StopIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
             <HorizontalList gap="10px">
-                <DefaultButton :disabled="isPlaing || !isRecorded" @click="play" square title="Play">
+                <DefaultButton :disabled="isPlaying || !isRecorded" @click="play" square title="Play">
                     <PlayIcon />
                 </DefaultButton>
-                <DefaultButton :disabled="isPlaing || isRecording || !isRecorded"  @click="handleClear" square title="Clear">
+                <DefaultButton :disabled="isPlaying || isRecording || !isRecorded"  @click="handleClear" square title="Clear">
                     <ClearIcon :size="24"/>
                 </DefaultButton>
             </HorizontalList>
             <HorizontalList gap="10px">
                 <UploaderInput @change="handleFileChange" ref="fileInput"/>
             </HorizontalList>
-            <DefaultButton :disabled="isPlaing || isRecording || !isRecorded" @click="handleTrimSilence">
+            <DefaultButton :disabled="isPlaying || isRecording || !isRecorded" @click="handleTrimSilence">
                 Trim Silence
             </DefaultButton>
         </VerticalList>
@@ -57,7 +57,7 @@ const {
     play: playSample,
     stop: stopSample,
     source,
-    isPlaing
+    isPlaying
 } = useAudioPlayer()
 
 onMounted(async () => {
@@ -85,7 +85,7 @@ const play = () => {
 const stop = () => {
     if (isRecording.value) {
         stopRecord();
-    } else if(isPlaing.value) {
+    } else if(isPlaying.value) {
         stopSample();
     }
 };
