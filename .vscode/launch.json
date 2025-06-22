@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "vue: run dev",
+            "type": "node-terminal",
+            "request": "launch",
+            "command": "npm run dev",
+            "serverReadyAction": {
+                "pattern": "http://localhost:([0-9]+)",
+                "uriFormat": "http://localhost:%s",
+                "action": "debugWithChrome"
+            }
+        },
+        {
+            "name": "vue: attach to chrome",
+            "request": "attach",
+            "type": "chrome",
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/*",
+                "/__vite_root/*": "${webRoot}/*"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "dev",
+            "configurations": ["vue: run dev", "vue: attach to chrome"]
+        }
+    ]
+}
