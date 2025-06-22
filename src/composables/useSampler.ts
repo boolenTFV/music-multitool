@@ -1,14 +1,17 @@
 import { useAudioContext } from "@/composables/useAudioContext";
-import { onMounted, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import { useAudioPlayer } from "@/composables/useAudioPlayer";
-
+import { usePitchShifter } from "@/composables/usePitchShifter";
 
 export const useSampler = () => {
     const audioContext = useAudioContext();
-    const pitchShifterNode = ref<AudioWorkletNode>();
     const mode = ref< "classic" | "loop" >("classic");
     const maxGain = ref(1);
     const gainNode = audioContext.value.createGain();
+    const {
+        pitchShifterNode,
+        shiftPitch,
+    } = usePitchShifter();
     const {
         destination,
         play: playRecord,
@@ -16,19 +19,6 @@ export const useSampler = () => {
         isPlaying,
         source
     } = useAudioPlayer();
-
-    const initAudioWorklet = async () => {
-        await audioContext.value.audioWorklet.addModule(new URL("@/AudioProcessors/PitchShifterProcessor.js", import.meta.url));
-        pitchShifterNode.value = new AudioWorkletNode(
-            audioContext.value,
-            "pitch-shifter-processor",
-        );
-        
-        pitchShifterNode.value.connect(compressor);
-        compressor.connect(gainNode);
-        gainNode.connect(audioContext.value.destination);
-        destination.value = pitchShifterNode.value;
-    };
 
     const compressor = audioContext.value.createDynamicsCompressor();
     compressor.threshold.value = -30;
@@ -38,17 +28,19 @@ export const useSampler = () => {
     compressor.release.value = 0.1;
 
 
-    onMounted(async () => {
-        await initAudioWorklet();
+    watch([pitchShifterNode, destination], async () => {
+        if(!pitchShifterNode.value) return;
+        pitchShifterNode.value.connect(compressor);
+        compressor.connect(gainNode);
+        gainNode.connect(audioContext.value.destination);
+        destination.value = pitchShifterNode.value;
+    }, {
+        immediate: true
     })
 
-    const play = (audioBuffer: AudioBuffer, tone: number = 0, attackTimeMs: number = 0.05) => {
+    const play = (audioBuffer: AudioBuffer, semitones: number = 0, attackTimeMs: number = 0.05) => {
         const attackTime = attackTimeMs / 1000;
-        if(pitchShifterNode.value) {
-            const pitchRatio = pitchShifterNode.value.parameters.get("pitchRatio") as AudioParam;
-            const offset = 1 - Math.pow(2, tone/12);
-            pitchRatio.setValueAtTime(offset, audioContext.value.currentTime);
-        }
+        shiftPitch(semitones);
         gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
         gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + attackTime, attackTime/2);
         playRecord(audioBuffer);
