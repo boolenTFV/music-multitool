@@ -165,7 +165,7 @@
         play: playSampler,
         stop: stopSampler,
         mode: modeSampler,
-        maxGain: maxGainSampler
+        gain: maxGainSampler
     } = useSampler();
 
     const showAudioBufferModalVisible = ref(false);

@@ -2,12 +2,11 @@ import { useAudioContext } from "@/composables/useAudioContext";
 import { ref, watch } from "vue";
 import { useAudioPlayer } from "@/composables/useAudioPlayer";
 import { usePitchShifter } from "@/composables/usePitchShifter";
+import { useGainEnvelope } from "./useGainEnvelope";
 
 export const useSampler = () => {
     const audioContext = useAudioContext();
     const mode = ref< "classic" | "loop" >("classic");
-    const maxGain = ref(1);
-    const gainNode = audioContext.value.createGain();
     const {
         pitchShifterNode,
         shiftPitch,
@@ -19,6 +18,12 @@ export const useSampler = () => {
         isPlaying,
         source
     } = useAudioPlayer();
+    const {
+        gainNode,
+        attack,
+        release,
+        gain,
+    } = useGainEnvelope();
 
     const compressor = audioContext.value.createDynamicsCompressor();
     compressor.threshold.value = -30;
@@ -38,20 +43,16 @@ export const useSampler = () => {
         immediate: true
     })
 
-    const play = (audioBuffer: AudioBuffer, semitones: number = 0, attackTimeMs: number = 0.05) => {
-        const attackTime = attackTimeMs / 1000;
+    const play = (audioBuffer: AudioBuffer, semitones: number = 0, attackTimeMs: number = 50) => {
         shiftPitch(semitones);
-        gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
-        gainNode.gain.setTargetAtTime(maxGain.value, audioContext.value.currentTime + attackTime, attackTime/2);
+        attack(attackTimeMs);
         playRecord(audioBuffer);
         
     }
 
-    const stop = async (releaseTimeMs: number = 0.05) => {
-        const releaseTime = releaseTimeMs / 1000;
-        gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
-        gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTime, releaseTime/2);
-        stopPlayRecord(audioContext.value.currentTime + releaseTime);
+    const stop = async (releaseTimeMs: number = 50) => {
+        const timeToStop = release(releaseTimeMs)
+        stopPlayRecord(timeToStop);
     }
 
     watch([mode, source], ([newMode, newSource]) => {
@@ -68,6 +69,6 @@ export const useSampler = () => {
         stop,
         isPlaying,
         mode,
-        maxGain
+        gain
     }
 }
