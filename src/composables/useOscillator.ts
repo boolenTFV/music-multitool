@@ -1,20 +1,24 @@
 import type { ToneKeyData } from "@/components/Modules/types";
 import { ref } from "vue";
+import { useGainEnvelope } from "./useGainEnvelope";
 
-export const useOscilator = (audioContext: AudioContext) => {
+export const useOscillator = (audioContext: AudioContext) => {
     const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
     const busy = ref(false);
     const isOn = ref(false);
-    const maxVolume = ref(1);
+    const {
+        gainNode,
+        attack,
+        release,
+        gain
+    } = useGainEnvelope(audioContext);
+
     const initOscillator = () => {
-        oscillator.connect(gain);
+        oscillator.connect(gainNode);
         oscillator.start();
-        gain.gain.value = 0;
     }
 
     const playNote = (data: ToneKeyData, attackTimeMs: number = 0.2) => {
-        const attackTime = attackTimeMs / 1000;
         if(busy.value) return;
         busy.value = true;
         if(!isOn.value) {
@@ -22,15 +26,12 @@ export const useOscilator = (audioContext: AudioContext) => {
             initOscillator();
         }
         oscillator.frequency.value = data.frequency;
-        gain.gain.cancelScheduledValues(audioContext.currentTime);
-        gain.gain.setTargetAtTime(maxVolume.value, audioContext.currentTime + attackTime, attackTime / 2);
+        attack(attackTimeMs);
     }
 
     const stopNote = (releaseTimeMs: number = 0.5) => {
-        const releaseTime = releaseTimeMs / 1000;
         busy.value = false;
-        gain.gain.cancelScheduledValues(audioContext.currentTime);
-        gain.gain.setTargetAtTime(0, audioContext.currentTime + releaseTime, releaseTime / 2);
+        release(releaseTimeMs);
     }
 
 
@@ -38,11 +39,9 @@ export const useOscilator = (audioContext: AudioContext) => {
         oscillator,
         gain,
         busy,
-        isOn,
-        maxVolume,
         initOscillator,
         playNote,
         stopNote,
-        output: gain
+        output: gainNode
     }
 }

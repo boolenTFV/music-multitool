@@ -1,16 +1,10 @@
-import { useAudioContext } from "@/composables/useAudioContext";
 import { ref } from "vue";
 
-export const useGainEnvelope = () => {
-    const audioContext = useAudioContext();
+export const useGainEnvelope = (audioContext: AudioContext) => {
     const gain = ref(1);
-    const gainNode = audioContext.value.createGain();
+    const gainNode = audioContext.createGain();
     const connect = (source: AudioNode) => {
         source.connect(gainNode);
-    };
-
-    const connectToDestination = () => {
-        gainNode.connect(audioContext.value.destination);
     };
 
     /**
@@ -20,8 +14,8 @@ export const useGainEnvelope = () => {
      */
     const attack = (attackTimeMs: number) => {
         const attackTimeSeconds = attackTimeMs / 1000;
-        gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
-        gainNode.gain.setTargetAtTime(gain.value, audioContext.value.currentTime + attackTimeSeconds, attackTimeSeconds / 2);
+        gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+        gainNode.gain.setTargetAtTime(gain.value, audioContext.currentTime + attackTimeSeconds, attackTimeSeconds / 2);
     };
 
     /**
@@ -32,9 +26,9 @@ export const useGainEnvelope = () => {
      */
     const release = (releaseTimeMs: number) => {
         const releaseTimeSeconds = releaseTimeMs / 1000;
-        gainNode.gain.cancelScheduledValues(audioContext.value.currentTime);
-        gainNode.gain.setTargetAtTime(0, audioContext.value.currentTime + releaseTimeSeconds, releaseTimeSeconds / 2);
-        return audioContext.value.currentTime + releaseTimeSeconds;
+        gainNode.gain.cancelScheduledValues(audioContext.currentTime);
+        gainNode.gain.setTargetAtTime(0, audioContext.currentTime + releaseTimeSeconds, releaseTimeSeconds / 2);
+        return audioContext.currentTime + releaseTimeSeconds;
     };
 
     return {
@@ -42,7 +36,6 @@ export const useGainEnvelope = () => {
         gain,
         attack,
         release,
-        connect,
-        connectToDestination
+        connect
     };
 }; 

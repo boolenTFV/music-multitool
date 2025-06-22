@@ -9,7 +9,6 @@ export const usePitchShifter = () => {
     const initAudioWorklet = async () => {
         try {
             await callOnce("pitch-shifter", async () => {
-                console.log("Initializing pitch shifter");
                 await audioContext.value.audioWorklet.addModule(
                     new URL("@/AudioProcessors/PitchShifterProcessor.js", import.meta.url)
                 )

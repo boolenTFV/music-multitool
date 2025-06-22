@@ -23,7 +23,7 @@ export const useSampler = () => {
         attack,
         release,
         gain,
-    } = useGainEnvelope();
+    } = useGainEnvelope(audioContext.value);
 
     const compressor = audioContext.value.createDynamicsCompressor();
     compressor.threshold.value = -30;
