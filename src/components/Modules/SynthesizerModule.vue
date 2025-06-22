@@ -146,7 +146,7 @@
     import { computed } from "vue";
     import SettingsIcon from "../Icons/SettingsIcon.vue";
     import SamplerIcon from "../Icons/SamplerIcon.vue";
-import { exhaustiveMatchGuard } from "@/utils/types";
+    import { exhaustiveMatchGuard } from "@/utils/types";
 
     const oscillatorTypes:("sine" | "square" | "triangle" | "sawtooth")[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
@@ -200,12 +200,6 @@ import { exhaustiveMatchGuard } from "@/utils/types";
         }
     }
 
-    const getSample = (index: number, samplerSamples: AudioBuffer[]) => {
-        if(samplerSamples.length === 0) return;
-        const sampleIndex = index % samplerSamples.length;
-        return samplerSamples[sampleIndex];
-    }
-
     async function play(data: PianoToneKeyData) {
         switch(type.value) {
             case "synthesizer":
@@ -216,7 +210,10 @@ import { exhaustiveMatchGuard } from "@/utils/types";
                     stopSampler(releaseTime.value);
                 }
                 currentSamplerKey.value = data;
-                const currentSample = getSample(index, samplerSamples.value); 
+                if(samplerSamples.value.length === 0) {
+                    return console.warn('No samples');
+                }
+                const currentSample = samplerSamples.value[index % samplerSamples.value.length];
                 if(!currentSample) return;
                 playSampler(currentSample, index - 12, attackTime.value);
                 return;

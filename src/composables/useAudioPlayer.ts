@@ -3,7 +3,7 @@ import { ref } from "vue";
 
 export const useAudioPlayer = () => {
     const audioContext = useAudioContext();
-    const isPlaing = ref<boolean>(false)
+    const isPlaying = ref<boolean>(false)
     const source = ref<AudioBufferSourceNode>();
     const destination = ref<AudioNode>(audioContext.value.destination);
     const pauseTime = ref<number>();
@@ -12,7 +12,7 @@ export const useAudioPlayer = () => {
     const stop = (when:number = 0) => {
         if (!source.value) return;
         source.value.stop(when);
-        isPlaing.value = false;
+        isPlaying.value = false;
         pauseTime.value = undefined;
     };
 
@@ -32,7 +32,7 @@ export const useAudioPlayer = () => {
         const duration = audioBuffer.duration || 0;
         const offset = pauseTime.value ? (pauseTime.value - startTime.value) / 1000 : 0;
         source.value.start(0, when ? when : offset % duration);
-        isPlaing.value = true;
+        isPlaying.value = true;
     };
 
     return {
@@ -41,7 +41,7 @@ export const useAudioPlayer = () => {
         pause,
         source,
         destination,
-        isPlaing
+        isPlaying
     };
     
 }

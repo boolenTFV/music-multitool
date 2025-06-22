@@ -13,7 +13,7 @@ export const useSampler = () => {
         destination,
         play: playRecord,
         stop: stopPlayRecord,
-        isPlaing,
+        isPlaying,
         source
     } = useAudioPlayer();
 
@@ -74,7 +74,7 @@ export const useSampler = () => {
     return {
         play,
         stop,
-        isPlaing,
+        isPlaying,
         mode,
         maxGain
     }
