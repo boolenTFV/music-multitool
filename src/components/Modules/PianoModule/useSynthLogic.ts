@@ -1,8 +1,9 @@
-import { reactive, ref, unref, watch } from "vue";
+import { onMounted, reactive, ref, unref, watch } from "vue";
 import { useOscillator } from "@/composables/useOscillator";
 import type { PianoToneKeyData, ToneKeyData } from "../types";
 import { generateOctave } from "./useKeys";
 import { useAudioContext } from "@/composables/useAudioContext";
+import { callOnce } from "@/composables/callOnce";
 
 
 export const useSynthLogic = () => {
@@ -22,11 +23,16 @@ export const useSynthLogic = () => {
     })
 
     const keys = ref<PianoToneKeyData[]>([...generatePianoOctave(3),...generatePianoOctave(4), ...generatePianoOctave(5), ...generatePianoOctave(6)]);
+    
     const { oscillator: oscillator1, busy: busy1, playNote: playNote1, stopNote: stopNote1, gain: maxVolume1, output: output1 } = useOscillator(unref(audioContext));
     const { oscillator: oscillator2, busy: busy2, playNote: playNote2, stopNote: stopNote2, gain: maxVolume2, output: output2 } = useOscillator(unref(audioContext));
     const { oscillator: oscillator3, busy: busy3, playNote: playNote3, stopNote: stopNote3, gain: maxVolume3, output: output3 } = useOscillator(unref(audioContext));
 
-    audioContext.value.audioWorklet.addModule(new URL("@/AudioProcessors/MixerProcessor.js", import.meta.url)).then(() => {
+    const initMixer = async () => {
+        await callOnce(
+            "import-mixer-processor",
+            () => audioContext.value.audioWorklet.addModule(new URL("@/AudioProcessors/MixerProcessor.js", import.meta.url))
+        );
         mixerNode.value = new AudioWorkletNode(
             audioContext.value,
             "mixer-processor",
@@ -35,7 +41,12 @@ export const useSynthLogic = () => {
         output2.connect(mixerNode.value);
         output3.connect(mixerNode.value);
         mixerNode.value.connect(audioContext.value.destination);
-    });
+    }
+
+    onMounted(async () => {
+        await initMixer();
+    })
+
     const playKey = (data: ToneKeyData, attackTime: number = 0.2) => {
         if(!busy1.value) {
             activeKeyTones.key1 = data;
