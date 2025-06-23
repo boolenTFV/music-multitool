@@ -50,15 +50,15 @@ export const useSynthLogic = () => {
     const playKey = (data: ToneKeyData, attackTime: number = 0.2) => {
         if(!busy1.value) {
             activeKeyTones.key1 = data;
-            playNote1(data, attackTime);
+            playNote1(data.frequency, attackTime);
             return true;
         } else if(!busy2.value) {
             activeKeyTones.key2 = data;
-            playNote2(data, attackTime);
+            playNote2(data.frequency, attackTime);
             return true;
         } else if(!busy3.value) {
             activeKeyTones.key3 = data;
-            playNote3(data, attackTime );
+            playNote3(data.frequency, attackTime );
             return true;
         }
         return false;

@@ -1,4 +1,3 @@
-import type { ToneKeyData } from "@/components/Modules/types";
 import { ref } from "vue";
 import { useGainEnvelope } from "./useGainEnvelope";
 
@@ -18,14 +17,14 @@ export const useOscillator = (audioContext: AudioContext) => {
         oscillator.start();
     }
 
-    const playNote = (data: ToneKeyData, attackTimeMs: number = 0.2) => {
+    const playNote = (frequency: number, attackTimeMs: number = 0.2) => {
         if(busy.value) return;
         busy.value = true;
         if(!isOn.value) {
             isOn.value = true;
             initOscillator();
         }
-        oscillator.frequency.value = data.frequency;
+        oscillator.frequency.value = frequency;
         attack(attackTimeMs);
     }
 
