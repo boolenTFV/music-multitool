@@ -127,7 +127,7 @@
         </BlockContainer>
     </template>
     <script lang="ts" setup>
-    import { onUnmounted, ref, watch } from "vue";
+    import { onMounted, onUnmounted, ref, watch } from "vue";
     import BlockContainer from "@/components/BlockContainer.vue";
     import WhiteKey from "@/components/Modules/PianoModule/WhiteKey.vue";
     import BlackKey from "@/components/Modules/PianoModule/BlackKey.vue";
@@ -147,6 +147,8 @@
     import SettingsIcon from "../Icons/SettingsIcon.vue";
     import SamplerIcon from "../Icons/SamplerIcon.vue";
     import { exhaustiveMatchGuard } from "@/utils/types";
+    import { useGainEnvelope } from "@/composables/useGainEnvelope";
+    import { useAudioContext } from "@/composables/useAudioContext";
 
     const oscillatorTypes:("sine" | "square" | "triangle" | "sawtooth")[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
@@ -154,6 +156,7 @@
     const attackTime = ref(10);
     const releaseTime = ref(200);
     const gain = ref(80);
+    const audioContext = useAudioContext();
     const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
     
     const audioBuffersSplited = ref<AudioBuffer[]>([]);
@@ -161,11 +164,12 @@
         isRecorded: isRecordedSampler,
         audioBuffer: audioBufferRecoreded
     } = useAudioRecorder()
+    const { gain: maxGainSampler, attack: attackSampler, release: releaseSampler, gainNode: gainNodeSampler } = useGainEnvelope(audioContext.value);
     const {
         play: playSampler,
         stop: stopSampler,
         mode: modeSampler,
-        gain: maxGainSampler
+        output: outputSampler,
     } = useSampler();
 
     const showAudioBufferModalVisible = ref(false);
@@ -215,7 +219,8 @@
                 }
                 const currentSample = samplerSamples.value[index % samplerSamples.value.length];
                 if(!currentSample) return;
-                playSampler(currentSample, index - 12, attackTime.value);
+                attackSampler(attackTime.value);
+                playSampler(currentSample, index - 12);
                 return;
             }
             default: throw exhaustiveMatchGuard(type.value);
@@ -228,7 +233,8 @@
                 break;
             case "sampler": {
                 if(currentSamplerKey.value === data) {
-                    stopSampler(releaseTime.value);
+                    const timeToStop = releaseSampler(releaseTime.value);
+                    stopSampler(timeToStop);
                     currentSamplerKey.value = undefined;
                 }
             } break;
@@ -267,6 +273,11 @@
     };
     window.addEventListener('keydown', onKeydown);
     window.addEventListener('keyup', onKeyup);
+
+    onMounted(() => {
+        outputSampler.connect(gainNodeSampler);
+        gainNodeSampler.connect(audioContext.value.destination);
+    })
     onUnmounted(() => {
         window.removeEventListener('keydown', onKeydown);
         window.removeEventListener('keyup', onKeyup);

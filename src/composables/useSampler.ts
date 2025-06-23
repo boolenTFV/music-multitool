@@ -2,7 +2,6 @@ import { useAudioContext } from "@/composables/useAudioContext";
 import { ref, watch } from "vue";
 import { useAudioPlayer } from "@/composables/useAudioPlayer";
 import { usePitchShifter } from "@/composables/usePitchShifter";
-import { useGainEnvelope } from "./useGainEnvelope";
 
 export const useSampler = () => {
     const audioContext = useAudioContext();
@@ -18,12 +17,6 @@ export const useSampler = () => {
         isPlaying,
         source
     } = useAudioPlayer();
-    const {
-        gainNode,
-        attack,
-        release,
-        gain,
-    } = useGainEnvelope(audioContext.value);
 
     const compressor = audioContext.value.createDynamicsCompressor();
     compressor.threshold.value = -30;
@@ -36,22 +29,18 @@ export const useSampler = () => {
     watch([pitchShifterNode, destination], async () => {
         if(!pitchShifterNode.value) return;
         pitchShifterNode.value.connect(compressor);
-        compressor.connect(gainNode);
-        gainNode.connect(audioContext.value.destination);
         destination.value = pitchShifterNode.value;
     }, {
         immediate: true
     })
 
-    const play = (audioBuffer: AudioBuffer, semitones: number = 0, attackTimeMs: number = 50) => {
+    const play = (audioBuffer: AudioBuffer, semitones: number = 0) => {
         shiftPitch(semitones);
-        attack(attackTimeMs);
         playRecord(audioBuffer);
         
     }
 
-    const stop = async (releaseTimeMs: number = 50) => {
-        const timeToStop = release(releaseTimeMs)
+    const stop = async (timeToStop: number) => {
         stopPlayRecord(timeToStop);
     }
 
@@ -69,6 +58,6 @@ export const useSampler = () => {
         stop,
         isPlaying,
         mode,
-        gain
+        output: compressor,
     }
 }
