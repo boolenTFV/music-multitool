@@ -1,6 +1,5 @@
 import { ref, onMounted } from "vue";
 import { useAudioContext } from "./useAudioContext";
-import { callOnce } from "./callOnce";
 
 export const usePitchShifter = () => {
     const audioContext = useAudioContext();
@@ -8,11 +7,9 @@ export const usePitchShifter = () => {
     const wasInitialized = ref(false);
     const initAudioWorklet = async () => {
         try {
-            await callOnce("pitch-shifter", async () => {
-                await audioContext.value.audioWorklet.addModule(
-                    new URL("@/AudioProcessors/PitchShifterProcessor.js", import.meta.url)
-                )
-            })
+            await audioContext.value.audioWorklet.addModule(
+                new URL("@/AudioProcessors/PitchShifterProcessor.js", import.meta.url)
+            )
             pitchShifterNode.value = new AudioWorkletNode(
                 audioContext.value,
                 "pitch-shifter-processor",

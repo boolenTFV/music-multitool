@@ -68,7 +68,9 @@
                             activeKeyTones.key1 === data
                             || activeKeyTones.key2 === data
                             || activeKeyTones.key3 === data
-                            || currentSamplerKey === data
+                            || activeSamplerKeys.key1 === data
+                            || activeSamplerKeys.key2 === data
+                            || activeSamplerKeys.key3 === data
                         "
                     >
                         {{ getSynthesizerKeyHint(data, index).value }}
@@ -88,7 +90,9 @@
                             activeKeyTones.key1 === data
                             || activeKeyTones.key2 === data
                             || activeKeyTones.key3 === data
-                            || currentSamplerKey === data
+                            || activeSamplerKeys.key1 === data
+                            || activeSamplerKeys.key2 === data
+                            || activeSamplerKeys.key3 === data
                         "
                     >
                         
@@ -115,7 +119,7 @@
                 <h2>Parameters</h2>
                 <label :class="$style.settings_item">
                     <span>Synthesizer mode</span>
-                    <select v-model="modeSampler">
+                    <select v-model="samplerMode">
                         <option disabled value="">Select mode</option>
                         <option value="classic">classic</option>
                         <option value="loop">loop</option>
@@ -137,8 +141,7 @@
     import TriangleWaveIcon from "@/components/Icons/TriangleWaveIcon.vue";
     import SawtoothWaveIcon from "@/components/Icons/SawtoothWaveIcon.vue";
     import RangeInput from "@/components/RangeInput.vue";
-    import { useSynthLogic } from "./PianoModule/useSynthLogic";
-    import { useSampler } from "@/composables/useSampler";
+    import { useUnifiedSynth } from "@/composables/useUnifiedSynth";
     import type { PianoToneKeyData } from "./types";
     import ModalComponent from "@/components/ModalComponent.vue";
     import AudioBufferCut from "@/components/AudioBufferCut.vue";
@@ -147,34 +150,39 @@
     import SettingsIcon from "../Icons/SettingsIcon.vue";
     import SamplerIcon from "../Icons/SamplerIcon.vue";
     import { exhaustiveMatchGuard } from "@/utils/types";
-    import { useGainEnvelope } from "@/composables/useGainEnvelope";
-    import { useAudioContext } from "@/composables/useAudioContext";
+    import { generateOctave } from "./PianoModule/useKeys";
 
     const oscillatorTypes:("sine" | "square" | "triangle" | "sawtooth")[] = ['sine', 'square', 'triangle', 'sawtooth'];
 
-    const type = ref<'synthesizer' | 'sampler'>('synthesizer');
     const attackTime = ref(10);
     const releaseTime = ref(200);
     const gain = ref(80);
-    const audioContext = useAudioContext();
-    const { keys, playKey: playKeySynthesizer, stopKey: stopKeySynthesizer, oscillatorType, activeKeyTones, maxVolume} = useSynthLogic();
+    
+    // Use the unified synth composable
+    const {
+        type,
+        oscillatorType,
+        samplerMode,
+        activeKeyTones,
+        activeSamplerKeys,
+        playKey,
+        stopKey,
+        setAudioBuffers,
+        setGain,
+        connectToDestination,
+    } = useUnifiedSynth();
     
     const audioBuffersSplited = ref<AudioBuffer[]>([]);
     const {
         isRecorded: isRecordedSampler,
         audioBuffer: audioBufferRecoreded
     } = useAudioRecorder()
-    const { gain: maxGainSampler, attack: attackSampler, release: releaseSampler, gainNode: gainNodeSampler } = useGainEnvelope(audioContext.value);
-    const {
-        play: playSampler,
-        stop: stopSampler,
-        mode: modeSampler,
-        output: outputSampler,
-    } = useSampler();
 
     const showAudioBufferModalVisible = ref(false);
     const keyboardKeyCodes = ['KeyA', 'KeyW', 'KeyS', 'KeyE', 'KeyD', 'KeyF', 'KeyT', 'KeyG', 'KeyY', 'KeyH', 'KeyU', 'KeyJ', 'KeyK', 'KeyL', 'KeyO', 'KeyP', 'Semicolon', 'BracketLeft', 'BracketRight', 'Quote', 'Backquote'];
-    const currentSamplerKey = ref<PianoToneKeyData>();
+
+    // Generate keys
+    const keys = ref<PianoToneKeyData[]>([...generatePianoOctave(3),...generatePianoOctave(4), ...generatePianoOctave(5), ...generatePianoOctave(6)]);
 
     const samplerSamples = computed(() => {
         if(audioBuffersSplited.value.length > 0) {
@@ -205,41 +213,13 @@
     }
 
     async function play(data: PianoToneKeyData) {
-        switch(type.value) {
-            case "synthesizer":
-                return playKeySynthesizer(data, attackTime.value);
-            case "sampler": {
-                const index = keys.value.indexOf(data);
-                if(currentSamplerKey.value) {
-                    stopSampler(releaseTime.value);
-                }
-                currentSamplerKey.value = data;
-                if(samplerSamples.value.length === 0) {
-                    return console.warn('No samples');
-                }
-                const currentSample = samplerSamples.value[index % samplerSamples.value.length];
-                if(!currentSample) return;
-                attackSampler(attackTime.value);
-                playSampler(currentSample, index - 12);
-                return;
-            }
-            default: throw exhaustiveMatchGuard(type.value);
-        }
+        const index = keys.value.indexOf(data);
+        const semitones = type.value === 'sampler' ? index - 12 : 0;
+        return playKey(data, attackTime.value, semitones);
     }
 
     function stop(data: PianoToneKeyData) {
-        switch(type.value) {
-            case "synthesizer": stopKeySynthesizer(data, releaseTime.value);
-                break;
-            case "sampler": {
-                if(currentSamplerKey.value === data) {
-                    const timeToStop = releaseSampler(releaseTime.value);
-                    stopSampler(timeToStop);
-                    currentSamplerKey.value = undefined;
-                }
-            } break;
-            default: throw exhaustiveMatchGuard(type.value)
-        }
+        stopKey(data, releaseTime.value);
     }
 
     const mouseLeave = (_: MouseEvent, data: PianoToneKeyData) => {
@@ -250,9 +230,9 @@
             play(data);
         }
     }
+    
     watch(gain, (value) => {
-        maxGainSampler.value = value/100;
-        maxVolume.value = value/100;
+        setGain(value/100);
     }, {immediate: true});
 
     const onKeydown = (e: KeyboardEvent) => {
@@ -271,17 +251,23 @@
         if(index === -1) return;
         stop(keys.value[index + octaveShift]);
     };
-    window.addEventListener('keydown', onKeydown);
-    window.addEventListener('keyup', onKeyup);
+    
+    // Watch for audio buffer changes and update the unified synth
+    watch(samplerSamples, (samples) => {
+        setAudioBuffers(samples);
+    }, { immediate: true });
 
     onMounted(() => {
-        outputSampler.connect(gainNodeSampler);
-        gainNodeSampler.connect(audioContext.value.destination);
+        connectToDestination();
+        window.addEventListener('keydown', onKeydown);
+        window.addEventListener('keyup', onKeyup);
     })
+    
     onUnmounted(() => {
         window.removeEventListener('keydown', onKeydown);
         window.removeEventListener('keyup', onKeyup);
     });
+    
     watch(isRecordedSampler, (value) => {
         if(value) {
             type.value = 'sampler';
@@ -289,6 +275,13 @@
             type.value = 'synthesizer';
         }
     });
+
+    // Helper function to generate piano octave
+    function generatePianoOctave(octave: number): PianoToneKeyData[] {
+        const octaveKeys = generateOctave(octave);
+        const keyTypes = ["white", "black", "white", "black", "white", "white", "black", "white", "black", "white", "black", "white"];
+        return octaveKeys.map((item, index) => ({...item, type: keyTypes[index]})) as PianoToneKeyData[];
+    }
 
     </script>
     <style module>
